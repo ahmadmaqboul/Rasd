@@ -1,0 +1,74 @@
+{
+  "name": "rasd",
+  "like": "neutral",
+  "mode": "both",
+  "settings": [
+    {
+      "thing": "neutral",
+      "value": "#808080",
+      "source": "dial"
+    },
+    {
+      "thing": "accent",
+      "value": "#000000",
+      "source": "dial"
+    },
+    {
+      "thing": "font",
+      "value": "IBM Plex Sans Arabic, Tahoma, Arial, sans-serif",
+      "source": "dial"
+    },
+    {
+      "thing": "--color-background-body",
+      "value": "#ffffff",
+      "source": "token",
+      "mode": "light"
+    },
+    {
+      "thing": "--color-background-body",
+      "value": "#000000",
+      "source": "token",
+      "mode": "dark"
+    },
+    {
+      "thing": "--color-accent",
+      "value": "#ffffff",
+      "source": "token",
+      "mode": "dark"
+    },
+    {
+      "thing": "info",
+      "value": "#7a7a7a",
+      "source": "dial"
+    },
+    {
+      "thing": "success",
+      "value": "#4f7a5c",
+      "source": "dial"
+    },
+    {
+      "thing": "warning",
+      "value": "#a8843c",
+      "source": "dial"
+    },
+    {
+      "thing": "danger",
+      "value": "#a34a42",
+      "source": "dial"
+    },
+    {
+      "thing": "--color-background-surface",
+      "value": "#000000",
+      "source": "token",
+      "mode": "dark"
+    },
+    {
+      "thing": "--color-background-card",
+      "value": "#0e0e0e",
+      "source": "token",
+      "mode": "dark"
+    }
+  ],
+  "lifted": [],
+  "palette": "cdc28eed2ef74a6f7aa6fca988f1dcb0949d2bcedcfe725b6b1cd0ed1f6c6273"
+}

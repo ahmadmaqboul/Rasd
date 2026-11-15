@@ -1,0 +1,439 @@
+{
+  "schemaVersion": 1,
+  "recipe": "astryx-oklch-v1",
+  "generatorVersion": "palette-generator-v1",
+  "candidateFormatVersion": "palette-typescript-v1",
+  "candidateSha256": "dade3a2d10572bad515ffe198b08305aa6b9ea9a1db9504c109f67202b8b1fdd",
+  "request": {
+    "recipe": "astryx-oklch-v1",
+    "vibrancy": 50,
+    "neutralProfile": "neutral-v1",
+    "modeStrategy": "light-and-dark",
+    "stops": [
+      0,
+      5,
+      10,
+      15,
+      20,
+      25,
+      30,
+      35,
+      40,
+      45,
+      50,
+      55,
+      60,
+      65,
+      70,
+      75,
+      80,
+      85,
+      90,
+      95,
+      100
+    ],
+    "families": [
+      {
+        "id": "accent",
+        "name": "Accent",
+        "seed": "#000000",
+        "kind": "neutral",
+        "anchors": [
+          {
+            "mode": "light",
+            "stop": 5,
+            "color": "#000000",
+            "policy": "exact"
+          }
+        ]
+      },
+      {
+        "id": "neutral",
+        "name": "Neutral",
+        "seed": "#808080",
+        "kind": "neutral",
+        "anchors": [
+          {
+            "mode": "light",
+            "stop": 55,
+            "color": "#808080",
+            "policy": "exact"
+          },
+          {
+            "mode": "dark",
+            "stop": 55,
+            "color": "#808080",
+            "policy": "exact"
+          }
+        ]
+      },
+      {
+        "id": "success",
+        "name": "Success",
+        "seed": "#4f7a5c",
+        "kind": "chromatic",
+        "anchors": [
+          {
+            "mode": "light",
+            "stop": 45,
+            "color": "#4f7a5c",
+            "policy": "exact"
+          },
+          {
+            "mode": "dark",
+            "stop": 45,
+            "color": "#4f7a5c",
+            "policy": "exact"
+          }
+        ]
+      },
+      {
+        "id": "warning",
+        "name": "Warning",
+        "seed": "#a8843c",
+        "kind": "chromatic",
+        "anchors": [
+          {
+            "mode": "light",
+            "stop": 55,
+            "color": "#a8843c",
+            "policy": "exact"
+          },
+          {
+            "mode": "dark",
+            "stop": 55,
+            "color": "#a8843c",
+            "policy": "exact"
+          }
+        ]
+      },
+      {
+        "id": "danger",
+        "name": "Danger",
+        "seed": "#a34a42",
+        "kind": "chromatic",
+        "anchors": [
+          {
+            "mode": "light",
+            "stop": 45,
+            "color": "#a34a42",
+            "policy": "exact"
+          },
+          {
+            "mode": "dark",
+            "stop": 45,
+            "color": "#a34a42",
+            "policy": "exact"
+          }
+        ]
+      },
+      {
+        "id": "info",
+        "name": "Info",
+        "seed": "#7a7a7a",
+        "kind": "neutral",
+        "anchors": [
+          {
+            "mode": "light",
+            "stop": 50,
+            "color": "#7a7a7a",
+            "policy": "exact"
+          }
+        ]
+      }
+    ]
+  },
+  "diagnostics": {
+    "families": {
+      "accent": {
+        "light": {
+          "monotonic": true,
+          "minimumAdjacentDeltaE": 0,
+          "maximumAdjacentDeltaE": 9.341871569643363,
+          "maximumHueDrift": 0,
+          "hueIdentityRisk": null,
+          "gamutMappedStops": [],
+          "anchors": [
+            {
+              "mode": "light",
+              "stop": 5,
+              "color": "#000000",
+              "policy": "exact",
+              "generatedColor": "#000000",
+              "deltaE": 0
+            }
+          ]
+        },
+        "dark": {
+          "monotonic": true,
+          "minimumAdjacentDeltaE": 4.056735649681861,
+          "maximumAdjacentDeltaE": 17.763777191722603,
+          "maximumHueDrift": 0,
+          "hueIdentityRisk": null,
+          "gamutMappedStops": [],
+          "anchors": []
+        }
+      },
+      "neutral": {
+        "light": {
+          "monotonic": true,
+          "minimumAdjacentDeltaE": 3.822364044525031,
+          "maximumAdjacentDeltaE": 17.763777191722603,
+          "maximumHueDrift": 0,
+          "hueIdentityRisk": null,
+          "gamutMappedStops": [],
+          "anchors": [
+            {
+              "mode": "light",
+              "stop": 55,
+              "color": "#808080",
+              "policy": "exact",
+              "generatedColor": "#808080",
+              "deltaE": 0
+            }
+          ]
+        },
+        "dark": {
+          "monotonic": true,
+          "minimumAdjacentDeltaE": 3.822364044525031,
+          "maximumAdjacentDeltaE": 17.763777191722603,
+          "maximumHueDrift": 0,
+          "hueIdentityRisk": null,
+          "gamutMappedStops": [],
+          "anchors": [
+            {
+              "mode": "dark",
+              "stop": 55,
+              "color": "#808080",
+              "policy": "exact",
+              "generatedColor": "#808080",
+              "deltaE": 0
+            }
+          ]
+        }
+      },
+      "success": {
+        "light": {
+          "monotonic": true,
+          "minimumAdjacentDeltaE": 3.8088667413958763,
+          "maximumAdjacentDeltaE": 18.556302173205776,
+          "maximumHueDrift": 4.034108981730242,
+          "hueIdentityRisk": null,
+          "gamutMappedStops": [
+            5,
+            10,
+            15,
+            20,
+            25,
+            100
+          ],
+          "anchors": [
+            {
+              "mode": "light",
+              "stop": 45,
+              "color": "#4f7a5c",
+              "policy": "exact",
+              "generatedColor": "#4f7a5c",
+              "deltaE": 0
+            }
+          ]
+        },
+        "dark": {
+          "monotonic": true,
+          "minimumAdjacentDeltaE": 3.935602432187936,
+          "maximumAdjacentDeltaE": 18.5263953856986,
+          "maximumHueDrift": 1.0203892886049744,
+          "hueIdentityRisk": null,
+          "gamutMappedStops": [
+            100
+          ],
+          "anchors": [
+            {
+              "mode": "dark",
+              "stop": 45,
+              "color": "#4f7a5c",
+              "policy": "exact",
+              "generatedColor": "#4f7a5c",
+              "deltaE": 0
+            }
+          ]
+        }
+      },
+      "warning": {
+        "light": {
+          "monotonic": true,
+          "minimumAdjacentDeltaE": 3.773618251531425,
+          "maximumAdjacentDeltaE": 18.19407364580807,
+          "maximumHueDrift": 9.098258676326054,
+          "hueIdentityRisk": null,
+          "gamutMappedStops": [
+            5,
+            10,
+            15,
+            20,
+            25,
+            30,
+            35,
+            40,
+            45,
+            50,
+            55,
+            60,
+            90,
+            95,
+            100
+          ],
+          "anchors": [
+            {
+              "mode": "light",
+              "stop": 55,
+              "color": "#a8843c",
+              "policy": "exact",
+              "generatedColor": "#a8843c",
+              "deltaE": 0
+            }
+          ]
+        },
+        "dark": {
+          "monotonic": true,
+          "minimumAdjacentDeltaE": 3.7129542699944,
+          "maximumAdjacentDeltaE": 18.19407364580807,
+          "maximumHueDrift": 9.098258676326054,
+          "hueIdentityRisk": null,
+          "gamutMappedStops": [
+            5,
+            10,
+            15,
+            20,
+            25,
+            30,
+            35,
+            40,
+            45,
+            50,
+            95,
+            100
+          ],
+          "anchors": [
+            {
+              "mode": "dark",
+              "stop": 55,
+              "color": "#a8843c",
+              "policy": "exact",
+              "generatedColor": "#a8843c",
+              "deltaE": 0
+            }
+          ]
+        }
+      },
+      "danger": {
+        "light": {
+          "monotonic": true,
+          "minimumAdjacentDeltaE": 4.15774535597124,
+          "maximumAdjacentDeltaE": 19.621884706160397,
+          "maximumHueDrift": 2.1952914508610775,
+          "hueIdentityRisk": null,
+          "gamutMappedStops": [
+            10,
+            15,
+            75,
+            80,
+            85,
+            90,
+            95,
+            100
+          ],
+          "anchors": [
+            {
+              "mode": "light",
+              "stop": 45,
+              "color": "#a34a42",
+              "policy": "exact",
+              "generatedColor": "#a34a42",
+              "deltaE": 0
+            }
+          ]
+        },
+        "dark": {
+          "monotonic": true,
+          "minimumAdjacentDeltaE": 4.045520325436489,
+          "maximumAdjacentDeltaE": 18.949623244939318,
+          "maximumHueDrift": 1.6458001050859252,
+          "hueIdentityRisk": null,
+          "gamutMappedStops": [
+            80,
+            85,
+            90,
+            95,
+            100
+          ],
+          "anchors": [
+            {
+              "mode": "dark",
+              "stop": 45,
+              "color": "#a34a42",
+              "policy": "exact",
+              "generatedColor": "#a34a42",
+              "deltaE": 0
+            }
+          ]
+        }
+      },
+      "info": {
+        "light": {
+          "monotonic": true,
+          "minimumAdjacentDeltaE": 3.8714522022690017,
+          "maximumAdjacentDeltaE": 17.763777191722603,
+          "maximumHueDrift": 0,
+          "hueIdentityRisk": null,
+          "gamutMappedStops": [],
+          "anchors": [
+            {
+              "mode": "light",
+              "stop": 50,
+              "color": "#7a7a7a",
+              "policy": "exact",
+              "generatedColor": "#7a7a7a",
+              "deltaE": 0
+            }
+          ]
+        },
+        "dark": {
+          "monotonic": true,
+          "minimumAdjacentDeltaE": 4.056735649681861,
+          "maximumAdjacentDeltaE": 17.763777191722603,
+          "maximumHueDrift": 0,
+          "hueIdentityRisk": null,
+          "gamutMappedStops": [],
+          "anchors": []
+        }
+      }
+    },
+    "coordination": [
+      {
+        "mode": "light",
+        "stop": 50,
+        "closestFamilies": [
+          "Success",
+          "Warning"
+        ],
+        "minimumFamilyDeltaE": 9.794104595602484,
+        "strongestFamily": "Danger",
+        "weakestFamily": "Success",
+        "chromaRatio": 1.719404505157237
+      },
+      {
+        "mode": "dark",
+        "stop": 50,
+        "closestFamilies": [
+          "Success",
+          "Warning"
+        ],
+        "minimumFamilyDeltaE": 10.118300986384883,
+        "strongestFamily": "Danger",
+        "weakestFamily": "Success",
+        "chromaRatio": 1.7757016781335622
+      }
+    ]
+  }
+}

@@ -1,0 +1,65 @@
+{
+  "name": "rasd",
+  "version": "0.0.0",
+  "private": true,
+  "type": "module",
+  "description": "رَصد — Social media market & competitor intelligence (local-first)",
+  "dependencies": {
+    "@astryxdesign/cli": "^0.7.16",
+    "@astryxdesign/core": "^0.7.16",
+    "@astryxdesign/theme-neutral": "^0.7.16",
+    "@fastify/static": "^10.1.11",
+    "@fontsource/ibm-plex-sans-arabic": "^5.3.0",
+    "@heroicons/react": "^2.2.0",
+    "@stylexjs/stylex": "^0.19.2",
+    "better-sqlite3": "^13.2.0",
+    "commander": "^15.1.0",
+    "drizzle-orm": "^0.45.4",
+    "fastify": "^5.12.8",
+    "i18next": "^27.1.2",
+    "playwright": "^1.63.0",
+    "react": "^19.3.1",
+    "react-dom": "^19.3.1",
+    "react-i18next": "^18.0.1",
+    "react-router": "^8.5.1",
+    "sharp": "^0.35.5",
+    "zod": "^4.6.7"
+  },
+  "overrides": {
+    "@babel/plugin-transform-runtime": "^7.29.0"
+  },
+  "devDependencies": {
+    "@types/better-sqlite3": "^9.6.0",
+    "@types/node": "^26.6.6",
+    "@types/react": "^19.3.0",
+    "@types/react-dom": "^19.3.0",
+    "@vitejs/plugin-react": "^6.3.0",
+    "concurrently": "^10.0.7",
+    "drizzle-kit": "^0.31.11",
+    "tsx": "^4.23.15",
+    "typescript": "^7.0.2",
+    "vite": "^8.3.8",
+    "vitest": "^5.1.0"
+  },
+  "scripts": {
+    "dev": "concurrently -k -n server,web -c auto \"npm:dev:server\" \"npm:dev:web\"",
+    "dev:server": "tsx watch src/server/index.ts",
+    "dev:web": "vite",
+    "build": "vite build",
+    "start": "tsx src/server/index.ts --prod",
+    "rasd": "node bin/rasd.mjs",
+    "test": "vitest run",
+    "typecheck": "tsc --noEmit",
+    "astryx": "node node_modules/@astryxdesign/cli/clients/cli/bin/astryx.mjs",
+    "db:generate": "drizzle-kit generate",
+    "spike:instagram": "tsx src/spikes/instagram.ts",
+    "spike:adlibrary": "tsx src/spikes/ad-library.ts",
+    "spike:bridge": "tsx src/spikes/bridge-seed.ts"
+  },
+  "bin": {
+    "rasd": "./bin/rasd.mjs"
+  },
+  "engines": {
+    "node": ">=22.13"
+  }
+}
