@@ -132,13 +132,16 @@ export function parseAds(payload: unknown, now = new Date()): CollectedAd[] {
   return [...byId.values()];
 }
 
-/** JSON embedded in the initial HTML: <script type="application/json"> tags that mention ad_archive_id. */
+/** Cheap pre-filter before parsing: does this text mention an ad id in either known spelling? */
+const mentionsAds = (text: string): boolean => text.includes('ad_archive_id') || text.includes('adArchiveID');
+
+/** JSON embedded in the initial HTML: <script type="application/json"> tags that mention an ad id. */
 export function parseEmbeddedJson(html: string): unknown[] {
   const out: unknown[] = [];
   const pattern = /<script[^>]*type="application\/json"[^>]*>([\s\S]*?)<\/script>/g;
   for (const match of html.matchAll(pattern)) {
     const text = match[1]!;
-    if (!text.includes('ad_archive_id')) continue;
+    if (!mentionsAds(text)) continue;
     try {
       out.push(JSON.parse(text));
     } catch {
@@ -203,6 +206,15 @@ export interface AdLibraryResult {
   source: 'network' | 'embedded' | 'mixed' | 'none';
   rawPayloads: {url: string; body: unknown}[];
   warnings: string[];
+  /** What the page actually did — kept so a silent "0 ads" can be diagnosed when the site changes. */
+  diagnostics: {
+    finalUrl: string;
+    title: string;
+    graphqlResponses: number;
+    graphqlWithAds: number;
+    htmlBytes: number;
+    embeddedBlocks: number;
+  };
 }
 
 export async function readAdLibrary(page: Page, query: AdLibraryQuery, options: AdLibraryOptions = {}): Promise<AdLibraryResult> {
@@ -213,12 +225,16 @@ export async function readAdLibrary(page: Page, query: AdLibraryQuery, options: 
   const warnings: string[] = [];
   const fromNetwork = new Map<string, CollectedAd>();
   const fromEmbedded = new Map<string, CollectedAd>();
+  const seen = {graphqlResponses: 0, graphqlWithAds: 0, htmlBytes: 0, embeddedBlocks: 0};
 
   const onResponse = async (response: Response) => {
-    if (!/\/api\/graphql/.test(response.url()) || response.status() !== 200) return;
+    if (!/\/api\/graphql/.test(response.url())) return;
+    seen.graphqlResponses += 1;
+    if (response.status() !== 200) return;
     try {
       const text = await response.text();
-      if (!text.includes('ad_archive_id')) return;
+      if (!mentionsAds(text)) return;
+      seen.graphqlWithAds += 1;
       for (const body of parseGraphqlBody(text)) {
         rawPayloads.push({url: '/api/graphql/', body});
         for (const ad of parseAds(body)) fromNetwork.set(ad.id, ad);
@@ -239,10 +255,18 @@ export async function readAdLibrary(page: Page, query: AdLibraryQuery, options: 
     }
     await assertNotBlocked(page, 'facebook');
 
-    for (const body of parseEmbeddedJson(html)) {
-      rawPayloads.push({url: 'embedded', body});
-      for (const ad of parseAds(body)) fromEmbedded.set(ad.id, ad);
-    }
+    // The first results are embedded in the document. Read the response body, and fall back to the live DOM:
+    // the response text can be unavailable (redirects, streaming), while the script tags stay in the page.
+    const readEmbedded = (source: string) => {
+      seen.htmlBytes = Math.max(seen.htmlBytes, source.length);
+      for (const body of parseEmbeddedJson(source)) {
+        seen.embeddedBlocks += 1;
+        rawPayloads.push({url: 'embedded', body});
+        for (const ad of parseAds(body)) fromEmbedded.set(ad.id, ad);
+      }
+    };
+    readEmbedded(html);
+    if (!fromEmbedded.size) readEmbedded(await page.content().catch(() => ''));
 
     // Cookie consent dialog (shown from some countries): we choose the essential ones only.
     const consent = page.getByRole('button', {name: /Decline optional cookies|Only allow essential cookies|رفض ملفات تعريف الارتباط الاختيارية/i});
@@ -280,7 +304,8 @@ export async function readAdLibrary(page: Page, query: AdLibraryQuery, options: 
     }
     if (ads.some(ad => !ad.startDate)) warnings.push('بعض الإعلانات بلا تاريخ بدء في بيانات الموقع.');
 
-    return {ads, url, source, rawPayloads, warnings};
+    const diagnostics = {finalUrl: page.url(), title: await page.title().catch(() => ''), ...seen};
+    return {ads, url, source, rawPayloads, warnings, diagnostics};
   } finally {
     page.off('response', onResponse);
   }

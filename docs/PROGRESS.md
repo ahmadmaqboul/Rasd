@@ -1,10 +1,10 @@
 # Progress
 
-Last updated: 2026-11-15 — end of Phase 0 work in the cloud build environment.
+Last updated: 2026-11-15 — end of the Phase 0 session in the cloud build environment.
 
 ## Phase 0 — Foundations and spikes
 
-**Status: built; two of the three spikes still need one run on the owner's laptop.**
+**Status: built, not closed. One spike works; one failed its first real run; one has not been run.**
 The exit criterion is "the app opens in Arabic with the correct font and theme, and all three spikes work with
 real data". The first half is met. The second half is met for the bridge only, and only on demo data.
 Why, and exactly what to run: [decisions.md → Spike results](decisions.md#spike-results).
@@ -26,15 +26,18 @@ Why, and exactly what to run: [decisions.md → Spike results](decisions.md#spik
 - [x] `/rasd-analyze` command + playbooks for `top_content` and `visual_style`
 - [x] **Spike 3 (bridge round trip): works end to end**, on labelled demo data
 - [x] Instagram collector + spike script, with login-wall / challenge / blocked-network handling
-- [x] Meta Ad Library collector + spike script
-- [x] 57 tests (parsers, bridge rules, study suggestions, recipes, locale completeness)
+- [x] Meta Ad Library collector + spike script (**does not read real data yet** — see Not done)
+- [x] 58 tests (parsers, bridge rules, study suggestions, recipes, locale completeness)
 - [x] [decisions.md](decisions.md)
 
 ### Not done
 
-- [ ] **Spike 1 (Instagram) against the real site** — needs a manual login in a visible browser
-- [ ] **Spike 2 (Ad Library) against the real site** — blocked by the build environment's network policy
-- [ ] Replace the hand-built parser fixtures with captured responses (first real run saves them automatically)
+- [ ] **Spike 2 (Ad Library): fix it.** One real run loaded the page and read 0 ads; cause unknown. The spike
+      now saves a screenshot, the HTML and response counts on an empty run — run it once, read those, fix the
+      parser. Details in [decisions.md](decisions.md#spike-results).
+- [ ] **Spike 1 (Instagram) against the real site** — never run. Needs a manual login in a visible browser,
+      so it has to happen on the laptop.
+- [ ] Replace the hand-built parser fixtures with captured responses (a successful run saves them automatically)
 
 ## Known gaps (by design, for later phases)
 

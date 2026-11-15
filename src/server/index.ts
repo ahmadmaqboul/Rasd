@@ -100,7 +100,7 @@ await app.register(fastifyStatic, {
 });
 
 if (isProd) {
-  // Single-page app: any path other than /api and /media returns index.html.
+  // Single-page app: any path other than /api, /media and /assets returns index.html.
   app.setNotFoundHandler((request, reply) => {
     if (['/api/', '/media/', '/assets/'].some(prefix => request.url.startsWith(prefix))) {
       return reply.status(404).send({error: 'not_found'});

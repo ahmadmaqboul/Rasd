@@ -1,7 +1,7 @@
 import {useCallback, useEffect, useRef, useState} from 'react';
 import type {FindingRow, StudyRow} from '../../core/db/schema';
 
-/** Types of the local server's responses (dates arrive as millisecond numbers after JSON). */
+/** Types of the local server's responses (Date columns arrive as ISO strings after JSON). */
 type Json<T> = {[K in keyof T]: T[K] extends Date ? string : T[K]};
 export type Study = Json<StudyRow>;
 export type Finding = Json<FindingRow>;

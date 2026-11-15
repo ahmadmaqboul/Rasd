@@ -38,6 +38,12 @@ try {
     maxAds: Number(flags.max ?? 30),
   });
 
+  // When nothing was read, keep what the page looked like: the first thing needed to fix a parser.
+  if (!result.ads.length) {
+    await page.screenshot({path: join(outDir, 'page.png')}).catch(() => {});
+    writeFileSync(join(outDir, 'page.html'), await page.content().catch(() => ''));
+  }
+
   result.rawPayloads.slice(0, 20).forEach((payload, i) => writeFileSync(join(outDir, `raw-${i + 1}.json`), JSON.stringify(payload, null, 2)));
   writeFileSync(join(outDir, 'result.json'), JSON.stringify(result.ads, null, 2));
 
@@ -61,6 +67,7 @@ try {
     })),
     counts: {ads: result.ads.length, withStartDate: result.ads.filter(a => a.startDate).length, rawPayloads: result.rawPayloads.length},
     warnings: result.warnings,
+    diagnostics: result.diagnostics,
     seconds: Math.round((Date.now() - started) / 1000),
     savedTo: outDir,
   });

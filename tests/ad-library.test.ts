@@ -119,3 +119,12 @@ describe('buildAdLibraryUrl', () => {
     expect(() => buildAdLibraryUrl({kind: 'page', pageId: 'saedtel'})).toThrow();
   });
 });
+
+describe('alternate key spelling', () => {
+  it('reads ads whose payload uses camelCase keys, embedded or not', () => {
+    const camel = {adArchiveID: '4444444444444444', isActive: true, startDate: 1790000000, publisherPlatform: ['FACEBOOK'], collationCount: 2};
+    expect(parseAds(camel, NOW)[0]).toMatchObject({id: '4444444444444444', isActive: true, variants: 2, platforms: ['facebook']});
+    const html = `<script type="application/json">${JSON.stringify({result: camel})}</script>`;
+    expect(parseAds(parseEmbeddedJson(html), NOW)).toHaveLength(1);
+  });
+});

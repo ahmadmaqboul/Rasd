@@ -6,9 +6,11 @@ Date: 2026-11-15. Each entry says what was chosen, why, and what would make us r
 
 Phase 0 was built in a **cloud container**, not on the owner's laptop. Two consequences:
 
-1. **The container's network policy blocks `instagram.com`, `facebook.com` and `tiktok.com`.** Every request
-   is refused by the egress proxy before it leaves (HTTP 403 on CONNECT). So the two collection spikes could
-   not be run against the real sites from here.
+1. **The container's network policy blocked `instagram.com`, `facebook.com` and `tiktok.com`.** Late in
+   Phase 0 the owner allowed four exact hosts (`www.facebook.com`, `static.xx.fbcdn.net`, `www.instagram.com`,
+   `static.cdninstagram.com`). The media CDNs use changing host names (`scontent-…fbcdn.net`,
+   `scontent-…cdninstagram.com`) that an exact-host allowlist cannot cover, so images still cannot load here.
+   One real Ad Library run was made after that; see the results table.
 2. **There is no screen.** The Instagram spike needs a person to log in once in a visible browser window.
    That can only happen on a machine with a display.
 
@@ -32,7 +34,7 @@ Neither is a design problem — Rasd is local-first and is meant to run on the l
 | Collection | **Playwright 1.63** (pinned), one persistent browser profile per platform under `data/sessions/` | Persistent profile = the manual login survives restarts. | — |
 | Reading pages | **Read the JSON the site loads for its own page**, DOM as fallback | Class names and markup change weekly; the data payloads change less often and carry exact numbers. We make no extra requests — only what the page itself loads. | A site moves fully to server-rendered HTML |
 | Validation | **zod 4** for everything that crosses the bridge | One schema gives the type, the validation and the error message. | — |
-| Tests | **Vitest 5**; 57 tests | — | — |
+| Tests | **Vitest 5**; 58 tests | — | — |
 
 ### Things that are newer than usual and worth knowing
 
@@ -104,13 +106,24 @@ code is `<bdi>` (see rtl.md §2).
 | # | Spike | Status | What was actually shown |
 |---|---|---|---|
 | 3 | **Bridge round trip** | ✅ **Works end to end** — on generated demo data | A 5-post package with images was built; I followed `/rasd-analyze` in this session: read the brief and the two playbooks, opened all five images, and wrote 8 findings through the CLI. A browser left open on the study page went from 0 to 8 findings **without reloading**, with 35 evidence thumbnails and none broken. The interrupted-and-resumed case was exercised too. The data is synthetic and labelled as demo in the UI; the analysis of it is real (e.g. it caught that one image shows 5 phone cases while its text says 6). |
-| 2 | **Meta Ad Library** | ⚠️ **Code and tests done; not run against the real site** | `npm run spike:adlibrary -- --keyword "…"` exists. The parser passes 11 tests against a hand-built fixture shaped like the site's response. From this container the run stops with a clear Arabic "cannot reach facebook.com" message, as designed. |
-| 1 | **Instagram profile + 12 posts** | ⚠️ **Code and tests done; not run against the real site** | `npm run spike:instagram -- --login` (visible window, manual login) then `npm run spike:instagram -- <handle>`. The parser handles both known payload shapes and passes 13 tests against hand-built fixtures. Needs a real login, so it can only be proven on the laptop. |
+| 2 | **Meta Ad Library** | ❌ **Ran once against the real site and read 0 ads** | After the hosts were allowed, `npm run spike:adlibrary -- --keyword "phone charger"` loaded the real page: no network block, no login wall or challenge detected, and the proxy log shows the page then asked for images from Facebook's media CDN, which suggests ad cards were drawn. But the collector captured **no** response containing an ad id, so it reported 0 ads with its "could not read any ad" warning. **The cause is not known.** That run saved no screenshot or HTML, and a second run with diagnostics was refused by this session's permission checks, so I stopped. The parser still passes 14 tests against a hand-built fixture — which is exactly the weakness: the fixture is my guess at the shape. |
+| 1 | **Instagram profile + 12 posts** | ⚠️ **Code and tests done; not run against the real site** | `npm run spike:instagram -- --login` (visible window, manual login) then `npm run spike:instagram -- <handle>`. The parser handles both known payload shapes and passes 11 tests against hand-built fixtures. Needs a real login, so it can only be proven on the laptop. |
 
 **Honest caveat on 1 and 2:** the fixtures are my reconstruction of the payload shapes, cross-checked by a web
-search, not captured responses. The sites' real payloads may differ in ways the tests cannot see. Both spikes
-save every raw response to `data/spikes/…/raw-*.json` precisely so that the first real run produces true
-fixtures. Expect to adjust the parsers after that first run.
+search, not captured responses. The one real run already showed the Ad Library reconstruction is wrong or
+incomplete somewhere. Treat both parsers as **unproven** until they have read real data.
+
+What changed after the failed run (all untested against the real site):
+
+- The collector accepts both spellings of the ad id key (`ad_archive_id`, `adArchiveID`) when deciding which
+  responses to parse; before, a camelCase payload was skipped before the parser ever saw it.
+- Embedded results are also read from the live DOM, not only from the first response body.
+- **Both spikes now save `page.png` and `page.html` when they read nothing**, and the Ad Library spike prints
+  how many GraphQL responses it saw and how many mentioned ads. The next empty run will say why.
+
+Likely causes to check first, in order: results delivered in a response the filter does not match (a different
+endpoint or key names); results rendered only after an interaction (consent, "see results" prompt); a
+different page served to data-center addresses than to a home connection.
 
 ### To close Phase 0 on the laptop
 

@@ -50,6 +50,12 @@ try {
   const page = context.pages()[0] ?? (await context.newPage());
   const result = await readInstagramProfile(page, handle, {maxPosts: Number(flags.max ?? 12)});
 
+  // When nothing was read, keep what the page looked like: the first thing needed to fix a parser.
+  if (!result.profile && !result.posts.length) {
+    await page.screenshot({path: join(outDir, 'page.png')}).catch(() => {});
+    writeFileSync(join(outDir, 'page.html'), await page.content().catch(() => ''));
+  }
+
   // The raw responses are saved to become fixtures for the parser tests whenever the site changes.
   result.rawPayloads.forEach((payload, i) => writeFileSync(join(outDir, `raw-${i + 1}.json`), JSON.stringify(payload, null, 2)));
 
