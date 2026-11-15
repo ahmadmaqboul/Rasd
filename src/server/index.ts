@@ -14,8 +14,8 @@ import {REPO_ROOT, dataDir, paths, resolveInside} from '../core/paths';
 import {attachEventStream} from './sse';
 
 /**
- * خادم رَصد المحلي. يستمع على 127.0.0.1 فقط — لا شيء يخرج من الجهاز.
- * في التطوير يخدّم الـ API فقط (والواجهة من Vite)، وفي --prod يخدّم dist/web أيضاً.
+ * Rasd's local server. Listens on 127.0.0.1 only — nothing leaves the machine.
+ * In development it serves the API only (the UI comes from Vite); with --prod it serves dist/web as well.
  */
 
 const PORT = Number(process.env.RASD_PORT ?? 4310);
@@ -77,7 +77,7 @@ app.get<{Params: {id: string}}>('/api/studies/:id', async request => {
   return {study, findings, evidence, packageStats};
 });
 
-// صور الحزمة (مصغّرات الأدلة). المسار يُحلّ داخل مجلد الحزمة فقط.
+// Package images (evidence thumbnails). The path is resolved inside the package folder only.
 app.get<{Params: {id: string; '*': string}}>('/media/studies/:id/*', async (request, reply) => {
   const id = parseId(request.params.id);
   const relative = request.params['*'];
@@ -100,15 +100,15 @@ await app.register(fastifyStatic, {
 });
 
 if (isProd) {
-  // تطبيق صفحة واحدة: أي مسار غير /api و /media يعيد index.html.
+  // Single-page app: any path other than /api and /media returns index.html.
   app.setNotFoundHandler((request, reply) => {
-    if (request.url.startsWith('/api/') || request.url.startsWith('/media/')) {
+    if (['/api/', '/media/', '/assets/'].some(prefix => request.url.startsWith(prefix))) {
       return reply.status(404).send({error: 'not_found'});
     }
     return reply.sendFile('index.html');
   });
 }
 
-getDb(); // يطبّق الترحيلات قبل استقبال الطلبات
+getDb(); // applies the migrations before accepting requests
 await app.listen({port: PORT, host: HOST});
 if (isProd) console.log(`رَصد يعمل على http://${HOST}:${PORT}`);

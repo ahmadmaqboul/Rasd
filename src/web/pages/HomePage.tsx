@@ -17,6 +17,7 @@ import {useTranslation} from 'react-i18next';
 import {useNavigate} from 'react-router';
 import {RECIPES} from '../../core/recipes';
 import {suggestStudy, type Suggestion} from '../../core/suggest';
+import {isolateLtr} from '../components/Ltr';
 import {recipeIcon} from '../lib/recipeIcons';
 import {useStudyText} from '../lib/studyText';
 
@@ -32,10 +33,10 @@ function SuggestionNote({suggestion}: {suggestion: Suggestion}) {
   const reason =
     suggestion.reason === 'account_url'
       ? suggestion.handle
-        ? t('suggestion.account_url_handle', {platform, handle: suggestion.handle})
+        ? t('suggestion.account_url_handle', {platform, handle: isolateLtr(`@${suggestion.handle}`)})
         : t('suggestion.account_url', {platform})
       : suggestion.reason === 'handle'
-        ? t('suggestion.handle', {handle: suggestion.handle ?? ''})
+        ? t('suggestion.handle', {handle: isolateLtr(`@${suggestion.handle ?? ''}`)})
         : t(`suggestion.${suggestion.reason}`);
 
   return (
@@ -55,7 +56,7 @@ function SuggestionNote({suggestion}: {suggestion: Suggestion}) {
   );
 }
 
-/** الرئيسية (§4.1): سؤال واحد، صندوق لصق/بحث، وبطاقات أنواع الدراسات. الإجراء الأساسي الوحيد: «ابدأ». */
+/** Home (§4.1): one question, a paste/search box, and the study type cards. The only primary action: "Start". */
 export function HomePage() {
   const {t} = useTranslation('home');
   const text = useStudyText();
@@ -93,6 +94,7 @@ export function HomePage() {
                   startIcon={MagnifyingGlassIcon}
                   hasClear
                   hasAutoFocus
+                  dir="auto"
                 />
                 <Button label={t('input.submit')} variant="primary" isDisabled={!suggestion} onClick={start} />
               </InputGroup>
