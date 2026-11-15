@@ -1,18 +1,18 @@
 # Fixtures
 
-هذه الملفات **مصنوعة يدوياً** على هيئة الردود المعروفة للمنصات، وليست ردوداً حقيقية ملتقطة.
-السبب: بيئة التطوير السحابية التي بُني فيها Phase 0 لا تصل إلى إنستغرام وفيسبوك.
+These files are **hand-built** to match the known shape of each platform's responses. They are **not**
+captured responses. Phase 0 was built in a cloud environment that cannot reach Instagram or Facebook.
 
-عند تشغيل السبايكين على جهاز حقيقي تُحفظ الردود الخام تلقائياً في:
+When the spikes run on a real machine, every raw response is saved automatically to:
 
 - `data/spikes/instagram/<handle>/raw-*.json`
 - `data/spikes/ad-library/<slug>/raw-*.json`
 
-**المطلوب في Phase 2:** استبدال هذه الملفات بردود حقيقية (بعد حذف أي بيانات شخصية منها)،
-حتى تكشف الاختبارات أي تغيّر في شكل المواقع.
+**To do in Phase 2:** replace these files with real responses (after removing any personal data), so the
+tests catch real changes in the sites' payloads.
 
-| الملف | يمثّل |
+| File | Stands in for |
 |---|---|
-| `instagram-web-profile-info.json` | الشكل القديم: `data.user` مع `edge_owner_to_timeline_media` |
-| `instagram-timeline-graphql.json` | الشكل الأحدث: `like_count` / `comment_count` / `taken_at` / `image_versions2` |
-| `ad-library-graphql.json` | نتائج بحث مكتبة الإعلانات: `ad_archive_id` + `snapshot` |
+| `instagram-web-profile-info.json` | Older shape: `data.user` with `edge_owner_to_timeline_media` |
+| `instagram-timeline-graphql.json` | Newer shape: `like_count` / `comment_count` / `taken_at` / `image_versions2` |
+| `ad-library-graphql.json` | Ad Library search results: `ad_archive_id` + `snapshot` |
