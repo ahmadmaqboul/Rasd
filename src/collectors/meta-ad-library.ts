@@ -10,18 +10,18 @@ import {
 } from './browser';
 
 /**
- * جامع مكتبة إعلانات ميتا (سبايك Phase 0): إعلانات صفحة أو كلمة مفتاحية مع تواريخ البدء.
+ * Meta Ad Library collector (Phase 0 spike): ads for a page or a keyword, with their start dates.
  *
- * لماذا تصفّح الواجهة لا الـ API الرسمي؟ واجهة Ad Library API (ads_archive) تعيد إعلانات
- * القضايا الاجتماعية/السياسة من أي بلد، والإعلانات التجارية فقط إذا عُرضت في الاتحاد الأوروبي
- * أو بريطانيا. إعلانات تجارية تستهدف فلسطين لا تظهر فيها — بينما مكتبة الإعلانات على الويب
- * عامة وتعرضها لأي زائر بلا تسجيل دخول. التفاصيل والمصادر في docs/decisions.md.
+ * Why browse the web UI rather than the official API? The Ad Library API (ads_archive) returns
+ * social-issue/political ads from any country, but commercial ads only if they were shown in the European Union
+ * or the UK. Commercial ads targeting Palestine do not show up in it — whereas the Ad Library on the web
+ * is public and shows them to any visitor without logging in. Details and sources are in docs/decisions.md.
  *
- * الطريقة: نفتح صفحة البحث العامة ونقرأ ردود JSON التي يطلبها الموقع لعرض النتائج
- * (+ البيانات المضمّنة في HTML الأولي)، ونمرّر الصفحة بإيقاع بشري لتحميل المزيد.
+ * Approach: we open the public search page and read the JSON responses the site requests to render the results
+ * (+ the data embedded in the initial HTML), and scroll the page at a human pace to load more.
  *
- * ⚠️ شكل الردود غير موثّق ويتغير. المحلِّل يبحث عن أي كائن فيه ad_archive_id أينما كان،
- * والردود الخام تُحفظ لتصير fixtures.
+ * ⚠️ The response shape is undocumented and it changes. The parser looks for any object that has an ad_archive_id,
+ * wherever it is, and the raw responses are saved to become fixtures.
  */
 
 type Json = Record<string, unknown>;
@@ -46,7 +46,7 @@ const isoFromSeconds = (value: unknown): string | null => {
   return seconds ? new Date(seconds * 1000).toISOString() : null;
 };
 
-/** نص الإعلان قد يكون سلسلة أو {text} أو {markup:{__html}}. قوالب الكتالوج ({{product.name}}) تُترك كما هي. */
+/** The ad text may be a string, {text} or {markup:{__html}}. Catalog templates ({{product.name}}) are left as they are. */
 function textOf(value: unknown): string | null {
   if (typeof value === 'string') return str(value);
   if (isObject(value)) return str(value.text) ?? str((value.markup as Json | undefined)?.__html)?.replace(/<[^>]+>/g, ' ').trim() ?? null;
@@ -67,7 +67,7 @@ function mediaFrom(node: Json): CollectedMedia[] {
     if (url) out.push({type: 'video', url});
     if (poster) out.push({type: 'image', url: poster});
   }
-  // بطاقات الكاروسيل تحمل صورها مباشرة على البطاقة.
+  // Carousel cards carry their images directly on the card.
   const direct = str(node.original_image_url) ?? str(node.resized_image_url);
   if (direct) out.push({type: 'image', url: direct});
   const directVideo = str(node.video_hd_url) ?? str(node.video_sd_url);
@@ -84,7 +84,7 @@ export function daysBetween(startIso: string | null, endIso: string | null, now 
   return days >= 0 ? days + 1 : null;
 }
 
-/** يستخرج كل الإعلانات من أي JSON (رد GraphQL أو بيانات مضمّنة في الصفحة). */
+/** Extracts every ad from any JSON (a GraphQL response or data embedded in the page). */
 export function parseAds(payload: unknown, now = new Date()): CollectedAd[] {
   const byId = new Map<string, CollectedAd>();
   for (const node of walk(payload)) {
@@ -126,13 +126,13 @@ export function parseAds(payload: unknown, now = new Date()): CollectedAd[] {
     };
 
     const existing = byId.get(id);
-    // النسخة التي تحمل snapshot أغنى من مجرد إشارة بالمعرّف.
+    // The copy that carries a snapshot is richer than a bare reference by ID.
     if (!existing || (!existing.startDate && ad.startDate) || (existing.media.length === 0 && ad.media.length > 0)) byId.set(id, ad);
   }
   return [...byId.values()];
 }
 
-/** JSON المضمّن في HTML الأولي: وسوم <script type="application/json"> التي تذكر ad_archive_id. */
+/** JSON embedded in the initial HTML: <script type="application/json"> tags that mention ad_archive_id. */
 export function parseEmbeddedJson(html: string): unknown[] {
   const out: unknown[] = [];
   const pattern = /<script[^>]*type="application\/json"[^>]*>([\s\S]*?)<\/script>/g;
@@ -142,13 +142,13 @@ export function parseEmbeddedJson(html: string): unknown[] {
     try {
       out.push(JSON.parse(text));
     } catch {
-      // وسم تالف: نتجاوزه.
+      // Broken tag: skip it.
     }
   }
   return out;
 }
 
-/** ردود GraphQL قد تكون عدة كائنات JSON في أسطر متتالية، وقد تبدأ بـ «for (;;);». */
+/** GraphQL responses may be several JSON objects on consecutive lines, and may start with "for (;;);". */
 export function parseGraphqlBody(text: string): unknown[] {
   const cleaned = text.replace(/^for \(;;\);/, '').trim();
   try {
@@ -159,20 +159,20 @@ export function parseGraphqlBody(text: string): unknown[] {
       try {
         if (line.trim()) out.push(JSON.parse(line));
       } catch {
-        // سطر غير مكتمل.
+        // Incomplete line.
       }
     }
     return out;
   }
 }
 
-// ── بناء رابط البحث ──────────────────────────────────────────────────────────
+// ── Building the search URL ──────────────────────────────────────────────────
 export type AdLibraryQuery = {kind: 'keyword'; keyword: string} | {kind: 'page'; pageId: string};
 
 export interface AdLibraryOptions {
-  /** رمز الدولة بحرفين (PS, JO, IL…) أو ALL لكل الدول. */
+  /** Two-letter country code (PS, JO, IL…) or ALL for all countries. */
   country?: string;
-  /** all = النشطة والمتوقفة. */
+  /** all = active and stopped ones. */
   status?: 'all' | 'active' | 'inactive';
   maxAds?: number;
   pacing?: Pacing;
@@ -196,7 +196,7 @@ export function buildAdLibraryUrl(query: AdLibraryQuery, options: AdLibraryOptio
   return `https://www.facebook.com/ads/library/?${params.toString()}`;
 }
 
-// ── التشغيل ──────────────────────────────────────────────────────────────────
+// ── Run ──────────────────────────────────────────────────────────────────────
 export interface AdLibraryResult {
   ads: CollectedAd[];
   url: string;
@@ -224,7 +224,7 @@ export async function readAdLibrary(page: Page, query: AdLibraryQuery, options: 
         for (const ad of parseAds(body)) fromNetwork.set(ad.id, ad);
       }
     } catch {
-      // رد أُغلق قبل قراءته.
+      // A response that was closed before it was read.
     }
   };
   page.on('response', onResponse);
@@ -244,7 +244,7 @@ export async function readAdLibrary(page: Page, query: AdLibraryQuery, options: 
       for (const ad of parseAds(body)) fromEmbedded.set(ad.id, ad);
     }
 
-    // نافذة الموافقة على ملفات الارتباط (تظهر من بعض الدول): نختار الضروري فقط.
+    // Cookie consent dialog (shown from some countries): we choose the essential ones only.
     const consent = page.getByRole('button', {name: /Decline optional cookies|Only allow essential cookies|رفض ملفات تعريف الارتباط الاختيارية/i});
     if (await consent.count()) {
       await consent.first().click().catch(() => {});
@@ -261,7 +261,7 @@ export async function readAdLibrary(page: Page, query: AdLibraryQuery, options: 
       stalled = total() === before ? stalled + 1 : 0;
     }
 
-    // الردود اللاحقة أحدث من المضمّن؛ عند التعارض نأخذ الأغنى (الشبكة).
+    // Later responses are newer than the embedded data; on a conflict we take the richer one (network).
     const merged = new Map([...fromEmbedded, ...fromNetwork]);
     const ads = [...merged.values()]
       .sort((a, b) => (b.startDate ?? '').localeCompare(a.startDate ?? ''))

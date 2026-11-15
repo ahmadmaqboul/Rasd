@@ -10,14 +10,14 @@ import {downloadImages} from '../collectors/media';
 import {parseArgs, print} from './args';
 
 /**
- * سبايك إنستغرام (Phase 0): جلسة Playwright دائمة ← حساب عام واحد + 12 منشوراً.
+ * Instagram spike (Phase 0): a persistent Playwright session → one public account + 12 posts.
  *
- *   npm run spike:instagram -- --login              # مرة واحدة: نافذة ظاهرة لتسجيل الدخول يدوياً
- *   npm run spike:instagram -- <حساب أو رابط>        # قراءة الحساب (خفية)
- *   npm run spike:instagram -- <حساب> --headed       # نفس الشيء بنافذة ظاهرة
- *   npm run spike:instagram -- <حساب> --study        # + إنشاء دراسة وحزمة جاهزة لـ /rasd-analyze
+ *   npm run spike:instagram -- --login              # once: a visible window for logging in manually
+ *   npm run spike:instagram -- <account or link>    # read the account (headless)
+ *   npm run spike:instagram -- <account> --headed   # the same, with a visible window
+ *   npm run spike:instagram -- <account> --study    # + create a study and a package ready for /rasd-analyze
  *
- * استعمل حساباً مخصصاً للجمع، لا حساب البزنس الرئيسي.
+ * Use an account dedicated to collection, not the main business account.
  */
 
 const {flags, positional} = parseArgs();
@@ -50,7 +50,7 @@ try {
   const page = context.pages()[0] ?? (await context.newPage());
   const result = await readInstagramProfile(page, handle, {maxPosts: Number(flags.max ?? 12)});
 
-  // الردود الخام تُحفظ لتصير fixtures لاختبارات المحلِّل عند أي تغيّر في الموقع.
+  // The raw responses are saved to become fixtures for the parser tests whenever the site changes.
   result.rawPayloads.forEach((payload, i) => writeFileSync(join(outDir, `raw-${i + 1}.json`), JSON.stringify(payload, null, 2)));
 
   let failedImages = 0;

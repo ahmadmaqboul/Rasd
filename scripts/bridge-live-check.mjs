@@ -1,5 +1,5 @@
-// أداة للمطوّر — تحقق حيّ من دورة الجسر: تفتح صفحة الدراسة ثم تكتب عبر CLI
-// وتقيس كم يستغرق ظهور كل تغيير في الواجهة **بلا إعادة تحميل** (SSE).
+// Developer tool — live check of the bridge loop: opens the study page, then writes through the CLI
+// and measures how long each change takes to show up in the UI **without a reload** (SSE).
 //   node scripts/bridge-live-check.mjs <studyId> <findings.json> [more.json…] [--shot out.png]
 import {chromium} from 'playwright';
 import {execFileSync} from 'node:child_process';
@@ -14,8 +14,8 @@ const rasd = (...a) => JSON.parse(execFileSync('node', ['bin/rasd.mjs', ...a], {
 const browser = await chromium.launch();
 const page = await browser.newPage({viewport: {width: 1280, height: 900}});
 await page.goto(`${BASE}/studies/${id}`, {waitUntil: 'networkidle'});
-await page.waitForTimeout(800); // وقت لفتح اتصال SSE
-// علامة في الذاكرة: أي إعادة تحميل للصفحة تمسحها — هكذا نثبت أن التحديث جاء عبر SSE.
+await page.waitForTimeout(800); // time for the SSE connection to open
+// In-memory marker: any page reload wipes it — that is how we prove the update arrived over SSE.
 await page.evaluate(() => { window.__rasdMarker = 'kept'; });
 const cards = () => page.locator('[data-testid="finding-card"]').count();
 const steps = [];
@@ -53,7 +53,7 @@ const result = {
   pageReloaded: (await page.evaluate(() => window.__rasdMarker)) !== 'kept',
 };
 if (shot) {
-  // المحتوى يتمرّر داخل AppShell؛ نكبّر النافذة لنلتقط الصفحة كاملة.
+  // The content scrolls inside AppShell; enlarge the viewport to capture the whole page.
   await page.setViewportSize({width: 1280, height: 3400});
   await page.waitForTimeout(500);
   await page.screenshot({path: shot});

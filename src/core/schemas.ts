@@ -2,12 +2,12 @@ import {z} from 'zod';
 import {MODULES} from './recipes';
 
 /**
- * مخططات البيانات المشتركة بين الجامعات (collectors)، باني الحزمة، الجسر (CLI/MCP) والواجهة.
- * كل ما يكتبه جلسة Claude إلى رَصد يمرّ من هنا ويُرفض برسالة واضحة إن خالف المخطط.
+ * Data schemas shared between the collectors, the package builder, the bridge (CLI/MCP) and the UI. Everything the
+ * Claude session writes to Rasd passes through here and is rejected with a clear message if it violates the schema.
  */
 
-// ── معرّفات الأدلة ────────────────────────────────────────────────────────────
-// الصيغة: <النوع>:<المنصة>:<المعرّف>  مثل post:ig:C8xYz  أو  ad:meta:1234567890
+// ── Evidence IDs ─────────────────────────────────────────────────────────────
+// Format: <kind>:<platform>:<id>  e.g. post:ig:C8xYz  or  ad:meta:1234567890
 export const EVIDENCE_KINDS = ['post', 'ad', 'listing', 'profile', 'page', 'comments'] as const;
 export const EVIDENCE_PLATFORMS = ['ig', 'fb', 'meta', 'tiktok', 'web', 'demo'] as const;
 
@@ -23,12 +23,12 @@ export function evidenceId(kind: (typeof EVIDENCE_KINDS)[number], platform: (typ
   return EvidenceId.parse(`${kind}:${platform}:${id.replace(/[^A-Za-z0-9_.-]/g, '_')}`);
 }
 
-// ── البيانات المجموعة (الواجهة المشتركة للجامعات) ─────────────────────────────
+// ── Collected data (the collectors' shared interface) ─────────────────────────
 export const CollectedMedia = z.object({
   type: z.enum(['image', 'video']),
-  /** الرابط الأصلي على المنصة (قد تنتهي صلاحيته). */
+  /** The original URL on the platform (it may expire). */
   url: z.string().optional(),
-  /** مسار الملف المحلي بعد التنزيل (مطلق). */
+  /** Local file path after download (absolute). */
   file: z.string().optional(),
   width: z.number().optional(),
   height: z.number().optional(),
@@ -78,10 +78,10 @@ export const CollectedAd = z.object({
   isActive: z.boolean().nullable(),
   startDate: z.string().nullable(),
   endDate: z.string().nullable(),
-  /** عدد أيام التشغيل حتى تاريخ الجمع (أو حتى تاريخ الإيقاف). */
+  /** Number of days running up to the collection date (or up to the stop date). */
   daysRunning: z.number().nullable(),
   platforms: z.array(z.string()).default([]),
-  /** عدد النسخ المتشابهة التي جمّعتها المكتبة تحت هذا الإعلان. */
+  /** Number of similar versions the library grouped under this ad. */
   variants: z.number().nullable(),
   body: z.string().default(''),
   title: z.string().nullable(),
@@ -92,16 +92,16 @@ export const CollectedAd = z.object({
 });
 export type CollectedAd = z.infer<typeof CollectedAd>;
 
-// ── الحزمة التحليلية ─────────────────────────────────────────────────────────
+// ── Analysis package ─────────────────────────────────────────────────────────
 export const PackageIndexItem = z.object({
   kind: z.enum(EVIDENCE_KINDS),
   platform: z.enum(EVIDENCE_PLATFORMS),
-  /** عنوان قصير يظهر مع الدليل في التقرير. */
+  /** A short title shown with the evidence in the report. */
   label: z.string(),
   url: z.string().nullable(),
-  /** ملف البيانات (نسبي داخل الحزمة) الذي يحوي هذا العنصر. */
+  /** The data file (relative, inside the package) that contains this item. */
   dataFile: z.string(),
-  /** صور محسّنة (نسبية داخل الحزمة) يمكن للجلسة أن «تراها». */
+  /** Optimized images (relative, inside the package) that the session can "see". */
   media: z.array(z.string()).default([]),
 });
 export type PackageIndexItem = z.infer<typeof PackageIndexItem>;
@@ -111,13 +111,13 @@ export const PackageIndex = z.object({
   studyId: z.number(),
   builtAt: z.string(),
   isDemo: z.boolean().default(false),
-  /** لكل وحدة تحليل: ملفات البيانات التي تخصّها ومسار كتيّبها (playbook). */
+  /** For each analysis module: the data files that belong to it and the path of its playbook. */
   modules: z.record(z.string(), z.object({dataFiles: z.array(z.string()), playbook: z.string().nullable()})),
   items: z.record(EvidenceId, PackageIndexItem),
 });
 export type PackageIndex = z.infer<typeof PackageIndex>;
 
-// ── النتائج (ما تكتبه جلسة Claude) ───────────────────────────────────────────
+// ── Findings (what the Claude session writes) ────────────────────────────────
 export const CONFIDENCE = ['low', 'medium', 'high'] as const;
 
 export const FindingInput = z.strictObject({
@@ -134,7 +134,7 @@ export const FindingInput = z.strictObject({
 });
 export type FindingInput = z.infer<typeof FindingInput>;
 
-/** رسالة خطأ مقروءة من zod، سطر لكل مشكلة مع مسارها. */
+/** A readable error message from zod, one line per issue with its path. */
 export function formatZodError(error: z.ZodError): string {
   return error.issues
     .map(issue => `- ${issue.path.length ? issue.path.join('.') : '(الجذر)'}: ${issue.message}`)

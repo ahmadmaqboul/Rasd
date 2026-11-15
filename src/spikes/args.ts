@@ -1,4 +1,4 @@
-/** محلّل وسائط صغير لسكربتات السبايك: --flag و --key value وقيم موضعية. */
+/** A small argument parser for the spike scripts: --flag, --key value, and positional values. */
 export function parseArgs(argv: string[] = process.argv.slice(2)): {flags: Record<string, string | true>; positional: string[]} {
   const flags: Record<string, string | true> = {};
   const positional: string[] = [];

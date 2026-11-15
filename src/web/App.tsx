@@ -40,11 +40,11 @@ interface NavEntry {
   href: string;
   icon: IconType;
   selectedIcon: IconType;
-  /** المسارات التي تُعدّ ضمن هذا القسم (للتظليل). */
+  /** The paths that count as part of this section (for highlighting). */
   match: (pathname: string) => boolean;
 }
 
-// التنقل: 6 عناصر فقط (§4). الإعدادات في أسفل القائمة كما هو مألوف.
+// Navigation: only 6 items (§4). Settings sits at the bottom of the menu, as is customary.
 const MAIN_NAV: NavEntry[] = [
   {key: 'home', href: '/', icon: HomeIcon, selectedIcon: HomeSolid, match: p => p === '/' || p.startsWith('/studies/new')},
   {

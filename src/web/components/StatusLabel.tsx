@@ -16,7 +16,7 @@ const VARIANT: Record<StudyStatus, StatusDotVariant> = {
 
 const IN_PROGRESS: ReadonlySet<StudyStatus> = new Set(['collecting', 'analyzing']);
 
-/** حالة الدراسة: نقطة + نص — الحالة لا تُنقل باللون وحده. */
+/** Study status: a dot + text — status is not conveyed by color alone. */
 export function StatusLabel({status}: {status: StudyStatus}) {
   const {t} = useTranslation();
   const label = t(`status.${status}`);

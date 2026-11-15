@@ -14,8 +14,8 @@ import {
 } from '../schemas';
 
 /**
- * باني الحزمة التحليلية (§6.0.1): يحوّل البيانات المجموعة إلى مجلد واحد
- * تقرؤه جلسة Claude: brief.md + data/*.json (مقطّعة) + media/ (صور مصغّرة) + index.json.
+ * Analysis package builder (§6.0.1): turns the collected data into a single folder
+ * that the Claude session reads: brief.md + data/*.json (chunked) + media/ (downsized images) + index.json.
  */
 
 export interface PackageInput {
@@ -32,12 +32,12 @@ export interface PackageResult {
   stats: {posts: number; ads: number; profiles: number; images: number; bytes: number};
 }
 
-/** حجم الدفعة: لا ملف بيانات يتجاوز هذا العدد، حتى تعالجه الجلسة على مراحل. */
+/** Chunk size: no data file holds more than this many items, so the session can process it in stages. */
 export const CHUNK_SIZE = 20;
-/** أطول ضلع للصورة داخل الحزمة — كافٍ للتحليل البصري وخفيف على الجلسة. */
+/** Longest image edge inside the package — enough for visual analysis and light on the session. */
 const MAX_IMAGE_EDGE = 1024;
 
-/** أي بيانات تخصّ كل وحدة تحليل. */
+/** Which data belongs to each analysis module. */
 const MODULE_SOURCES: Record<ModuleId, ('profiles' | 'posts' | 'ads')[]> = {
   account_metrics: ['profiles', 'posts'],
   posting_cadence: ['posts'],
@@ -96,7 +96,7 @@ export async function buildPackage(input: PackageInput): Promise<PackageResult> 
     bytes += Buffer.byteLength(text);
   };
 
-  /** ينسخ صور عنصر إلى media/ بأسماء ثابتة ويعيد مساراتها النسبية. */
+  /** Copies an item's images into media/ under stable names and returns their relative paths. */
   const copyMedia = async (prefix: string, media: {type: string; file?: string}[]): Promise<string[]> => {
     const out: string[] = [];
     let n = 0;
@@ -109,7 +109,7 @@ export async function buildPackage(input: PackageInput): Promise<PackageResult> 
         images += 1;
         out.push(relative);
       } catch {
-        // صورة تالفة: نتجاوزها ولا نُفشل الحزمة — البيانات الجزئية تبقى صالحة.
+        // Corrupt image: skip it and do not fail the package — partial data is still valid.
       }
     }
     return out;
@@ -137,7 +137,7 @@ export async function buildPackage(input: PackageInput): Promise<PackageResult> 
     for (const post of group) {
       const id = evidenceId('post', post.platform, post.id);
       const media = await copyMedia(`post_${post.platform}_${safe(post.id)}`, post.media);
-      // الجلسة لا تحتاج مسارات الملفات الأصلية ولا روابط CDN المؤقتة.
+      // The session needs neither the original file paths nor the temporary CDN URLs.
       const {media: rawMedia, ...rest} = post;
       rows.push({evidence: id, ...rest, mediaCount: rawMedia.length, images: media});
       items[id] = {

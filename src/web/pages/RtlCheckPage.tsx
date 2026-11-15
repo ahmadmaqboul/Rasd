@@ -57,9 +57,9 @@ function Block({title, children, testId}: {title: string; children: ReactNode; t
 }
 
 /**
- * صفحة للمطوّر (تظهر في وضع التطوير فقط): تعرض مكوّنات Astryx الأساسية بالعربية
- * للتحقق من الاتجاه. لقطاتها ونتائجها موثّقة في docs/rtl.md.
- * يمكن فتحها مع ‎?open=dialog|drawer|menu‎ لالتقاط العناصر المنبثقة آلياً.
+ * Developer page (shown in development mode only): renders the core Astryx components in Arabic
+ * to verify the direction. Its screenshots and results are documented in docs/rtl.md.
+ * It can be opened with ?open=dialog|drawer|menu to capture the popup elements automatically.
  */
 export function RtlCheckPage() {
   const {t} = useTranslation('dev');

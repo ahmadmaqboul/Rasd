@@ -2,12 +2,12 @@ import {mkdirSync} from 'node:fs';
 import {dirname, join, resolve, sep} from 'node:path';
 import {fileURLToPath} from 'node:url';
 
-/** جذر المستودع (المجلد الذي يحوي package.json). */
+/** Repository root (the folder that contains package.json). */
 export const REPO_ROOT = resolve(dirname(fileURLToPath(import.meta.url)), '..', '..');
 
 /**
- * كل بيانات رَصد تعيش محلياً تحت مجلد واحد (القاعدة، الوسائط، الحزم، جلسات المتصفح).
- * يمكن تغييره بالمتغير RASD_DATA_DIR (مفيد في الاختبارات).
+ * All of Rasd's data lives locally under a single folder (the database, media, packages, browser sessions).
+ * It can be changed with the RASD_DATA_DIR variable (useful in tests).
  */
 export function dataDir(): string {
   return resolve(process.env.RASD_DATA_DIR ?? join(REPO_ROOT, 'data'));
@@ -29,8 +29,8 @@ export function ensureDir(dir: string): string {
 }
 
 /**
- * يحلّ مساراً نسبياً داخل مجلد أساس ويرفض أي محاولة للخروج منه (path traversal).
- * يُستعمل قبل قراءة أي ملف يأتي اسمه من خارج التطبيق (واجهة، CLI، MCP).
+ * Resolves a relative path inside a base folder and rejects any attempt to escape it (path traversal).
+ * Used before reading any file whose name comes from outside the app (UI, CLI, MCP).
  */
 export function resolveInside(base: string, relative: string): string {
   const root = resolve(base);

@@ -20,7 +20,7 @@ import {ErrorState} from '../components/ErrorState';
 
 type Row = StudyListItem & Record<string, unknown>;
 
-/** دراساتي (§4.2): كل الدراسات السابقة. البحث والتصفية يأتيان مع ملفات البزنس في Phase 1. */
+/** My Studies (§4.2): all previous studies. Search and filtering come with the business profiles in Phase 1. */
 export function LibraryPage() {
   const {t} = useTranslation(['studies', 'common']);
   const text = useStudyText();

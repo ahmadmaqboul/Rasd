@@ -6,8 +6,8 @@ import {paths} from '../core/paths';
 import {generateDemoDataset} from './demo-data';
 
 /**
- * سبايك الجسر (Phase 0): ينشئ دراسة تجريبية صغيرة (5 منشورات + صور) ويبني حزمتها
- * ويتركها في حالة «جاهز للتحليل». بعدها:  /rasd-analyze <id>  في جلسة Claude Code.
+ * Bridge spike (Phase 0): creates a small demo study (5 posts + images), builds its package
+ * and leaves it in the "ready for analysis" status. After that:  /rasd-analyze <id>  in a Claude Code session.
  *
  *   npm run spike:bridge
  */
@@ -16,7 +16,7 @@ const study = createStudy({
   type: 'content',
   title: 'سبايك الجسر — محتوى متجر إكسسوارات (تجريبي)',
   params: {account: '@demo_accessories', period: '30d', depth: 'deep'},
-  // وحدتان فقط للسبايك: واحدة نصّية/رقمية وواحدة بصرية — تكفيان لإثبات الدورة.
+  // Only two modules for the spike: one textual/numeric and one visual — enough to prove the loop.
   modules: ['top_content', 'visual_style'],
   isDemo: true,
   status: 'collecting',

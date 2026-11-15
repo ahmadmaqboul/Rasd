@@ -14,8 +14,8 @@ import enSections from '../../locales/en/sections.json';
 import enStudies from '../../locales/en/studies.json';
 
 /**
- * كل نص ظاهر للمستخدم يمرّ من هنا — لا نصوص مكتوبة داخل المكوّنات.
- * العربية هي الأصل؛ الإنجليزية مهيّأة وفارغة (Phase 8) وتسقط على العربية عند غياب المفتاح.
+ * Every user-visible text goes through here — no text written inside the components.
+ * Arabic is the source; English is set up and empty (Phase 8) and falls back to Arabic when a key is missing.
  */
 
 export const DEFAULT_LANGUAGE = 'ar';

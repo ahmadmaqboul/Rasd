@@ -5,7 +5,7 @@ import {ExclamationTriangleIcon} from '@heroicons/react/24/outline';
 import {useTranslation} from 'react-i18next';
 import type {ApiError} from '../lib/api';
 
-/** خطأ تحميل برسالة عربية واضحة وزر إعادة المحاولة — لا شاشة بيضاء ولا رسالة تقنية. */
+/** A load error with a clear Arabic message and a retry button — no blank white screen and no technical message. */
 export function ErrorState({error, onRetry}: {error: ApiError; onRetry: () => void}) {
   const {t} = useTranslation();
   return (

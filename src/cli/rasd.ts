@@ -16,8 +16,8 @@ import {STUDY_STATUSES, type StudyStatus} from '../core/db/schema';
 import {paths} from '../core/paths';
 
 /**
- * `rasd` — جسر جلسة Claude إلى رَصد (§6.0.2).
- * كل الأوامر تطبع JSON على stdout (سهل القراءة للجلسة)، والأخطاء على stderr مع رمز خروج 1.
+ * `rasd` — the Claude session's bridge to Rasd (§6.0.2).
+ * Every command prints JSON to stdout (easy for the session to read); errors go to stderr with exit code 1.
  */
 
 const out = (value: unknown) => process.stdout.write(`${JSON.stringify(value, null, 2)}\n`);

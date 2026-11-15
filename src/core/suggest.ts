@@ -1,8 +1,8 @@
 /**
- * يقترح نوع الدراسة من نص يلصقه المستخدم في الرئيسية:
- * رابط حساب ← دراسة حساب، رابط مكتبة الإعلانات ← دراسة إعلانات،
- * رابط متجر/منتج ← دراسة منتج، نص حر ← دراسة منتج (الأكثر شيوعاً لمتجر).
- * دالة نقية بلا شبكة — تُختبر في tests/suggest.test.ts.
+ * Suggests the study type from text the user pastes on the home page:
+ * an account link → account study, an Ad Library link → ads study,
+ * a store/product link → product study, free text → product study (the most common for a store).
+ * A pure function with no network — tested in tests/suggest.test.ts.
  */
 
 export type Platform = 'instagram' | 'facebook' | 'tiktok' | 'web';
@@ -11,9 +11,9 @@ export interface Suggestion {
   recipeId: 'account' | 'ads' | 'product';
   reason: 'account_url' | 'handle' | 'ad_library_url' | 'store_url' | 'free_text';
   platform?: Platform;
-  /** اسم الحساب بعد التنظيف (بدون @ وبدون مسارات فرعية). */
+  /** The account name after cleanup (without @ and without sub-paths). */
   handle?: string;
-  /** النص كما سيُملأ في شاشة الإعداد. */
+  /** The text as it will be filled in on the setup screen. */
   value: string;
 }
 
@@ -44,7 +44,7 @@ export function suggestStudy(input: string): Suggestion | undefined {
   const value = input.trim();
   if (!value) return undefined;
 
-  // @handle بلا رابط: نفترض إنستغرام (المنصة الأولى لرَصد).
+  // @handle with no link: we assume Instagram (Rasd's first platform).
   const handleMatch = /^@([A-Za-z0-9._]{2,30})$/.exec(value);
   if (handleMatch) {
     return {recipeId: 'account', reason: 'handle', platform: 'instagram', handle: handleMatch[1], value};
@@ -80,7 +80,7 @@ export function suggestStudy(input: string): Suggestion | undefined {
     return {recipeId: 'account', reason: 'account_url', platform: 'tiktok', handle: segments[0].slice(1), value};
   }
 
-  // رابط منشور/ريل على منصة اجتماعية: لا نخمّن الحساب، نتركه نصاً حراً للمراجعة.
+  // A post/reel link on a social platform: we don't guess the account; we leave it as free text for review.
   if (host === 'instagram.com' || host === 'facebook.com' || host === 'fb.com' || host === 'tiktok.com') {
     return {recipeId: 'account', reason: 'account_url', platform: host.startsWith('insta') ? 'instagram' : host === 'tiktok.com' ? 'tiktok' : 'facebook', value};
   }

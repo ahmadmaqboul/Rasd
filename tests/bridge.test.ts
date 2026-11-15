@@ -186,7 +186,7 @@ describe('status transitions from the bridge', () => {
     expectBridgeError(() => setStudyStatus(studyId, 'collecting', {fromBridge: true}), 'bad_status');
     expectBridgeError(() => setStudyStatus(studyId, 'failed', {fromBridge: true}), 'bad_status');
     expect(setStudyStatus(studyId, 'done', {fromBridge: true}).status).toBe('done');
-    // إعادة التحليل بعد الاكتمال مسموحة صراحةً.
+    // Re-analysis after completion is explicitly allowed.
     expect(setStudyStatus(studyId, 'analyzing', {fromBridge: true}).status).toBe('analyzing');
   });
 

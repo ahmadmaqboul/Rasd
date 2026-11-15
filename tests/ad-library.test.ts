@@ -28,7 +28,7 @@ describe('parseAds', () => {
       url: 'https://www.facebook.com/ads/library/?id=1111111111111111',
     });
     expect(ad.startDate).toBe(new Date(1790000000 * 1000).toISOString());
-    // إعلان نشط: «تاريخ الانتهاء» في البيانات هو آخر يوم عرض، فلا نعدّه توقفاً.
+    // Active ad: the "end date" in the data is the last day it was shown, so we don't count it as a stop.
     expect(ad.endDate).toBeNull();
     expect(ad.daysRunning).toBe(daysBetween(ad.startDate, null, NOW));
     expect(ad.body).toContain('89 شيكل');
@@ -48,7 +48,7 @@ describe('parseAds', () => {
     expect(ad.format).toBe('carousel');
     expect(ad.title).toBe('باور بانك 20000');
     expect(ad.media).toHaveLength(2);
-    // قالب كتالوج: نتركه كما هو ليراه المحلّل ويعرف أنه إعلان ديناميكي.
+    // Catalog template: we leave it as is so the analyzer sees it and knows it is a dynamic ad.
     expect(ad.body).toBe('{{product.brand}}');
   });
 

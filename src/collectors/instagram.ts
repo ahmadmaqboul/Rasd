@@ -11,14 +11,14 @@ import {
 } from './browser';
 
 /**
- * جامع إنستغرام (سبايك Phase 0): حساب عام واحد + أول 12 منشوراً.
+ * Instagram collector (Phase 0 spike): one public account + its first 12 posts.
  *
- * الطريقة: نفتح صفحة الحساب في جلسة مسجّلة الدخول كأي مستخدم، ونقرأ ردود JSON التي
- * يطلبها الموقع نفسه لعرض الصفحة (أثبت من محدِّدات DOM التي تتغير كثيراً)، مع DOM كخطة بديلة.
- * لا طلبات إضافية ولا واجهات خاصة — فقط ما تحمّله الصفحة لأي متصفّح.
+ * Approach: we open the account page in a logged-in session like any user, and read the JSON responses that
+ * the site itself requests to render the page (more stable than DOM selectors, which change often), with the
+ * DOM as a fallback. No extra requests and no private APIs — only what the page loads for any browser.
  *
- * ⚠️ أشكال الردود غير موثّقة رسمياً وتتغير. المحلِّلات هنا متسامحة وتدعم الشكلين المعروفين
- * (القديم edge_* والجديد like_count/…)، وكل رد خام يُحفظ ليصير fixture للاختبارات.
+ * ⚠️ The response shapes are not officially documented and they change. The parsers here are lenient and support
+ * both known shapes (the old edge_* and the new like_count/…), and every raw response is saved to become a test fixture.
  */
 
 type Json = Record<string, unknown>;
@@ -27,7 +27,7 @@ const isObject = (value: unknown): value is Json => typeof value === 'object' &&
 const num = (value: unknown): number | null => (typeof value === 'number' && Number.isFinite(value) ? value : null);
 const str = (value: unknown): string | null => (typeof value === 'string' && value.length ? value : null);
 const bool = (value: unknown): boolean | null => (typeof value === 'boolean' ? value : null);
-/** قراءة آمنة لمسار داخل JSON؛ تدعم فهارس المصفوفات ('0'). */
+/** Safe read of a path inside JSON; supports array indexes ('0'). */
 const get = (value: unknown, ...path: string[]): unknown =>
   path.reduce<unknown>((acc, key) => (isObject(acc) || Array.isArray(acc) ? (acc as Json)[key] : undefined), value);
 const isoFromSeconds = (value: unknown): string | null => {
@@ -35,7 +35,7 @@ const isoFromSeconds = (value: unknown): string | null => {
   return seconds ? new Date(seconds * 1000).toISOString() : null;
 };
 
-/** يمشي على كل الكائنات داخل JSON مهما كان عمقها. */
+/** Walks every object inside the JSON, however deep it is. */
 function* walk(value: unknown, depth = 0): Generator<Json> {
   if (depth > 12) return;
   if (Array.isArray(value)) {
@@ -46,8 +46,8 @@ function* walk(value: unknown, depth = 0): Generator<Json> {
   }
 }
 
-// ── الحساب ───────────────────────────────────────────────────────────────────
-/** كائن «مستخدم» بأحد الشكلين المعروفين. */
+// ── Profile ──────────────────────────────────────────────────────────────────
+/** A "user" object in either of the two known shapes. */
 function looksLikeUser(node: Json): boolean {
   return (
     typeof node.username === 'string' &&
@@ -78,7 +78,7 @@ export function parseProfile(payload: unknown, handle: string, collectedAt = new
   return null;
 }
 
-// ── المنشورات ────────────────────────────────────────────────────────────────
+// ── Posts ────────────────────────────────────────────────────────────────────
 function postKind(node: Json): CollectedPost['kind'] {
   const typename = str(node.__typename);
   const mediaType = num(node.media_type);
@@ -107,7 +107,7 @@ function mediaOf(node: Json): CollectedMedia[] {
   const items = (children?.filter(isObject) as Json[] | undefined) ?? [node];
   const out: CollectedMedia[] = [];
   for (const item of items) {
-    // للفيديو نحفظ صورة الغلاف الآن؛ تنزيل الفيديو واستخراج اللقطات في Phase 2.
+    // For video we save the cover image for now; downloading the video and extracting frames comes in Phase 2.
     const url = bestImage(item);
     if (!url) continue;
     const dimensions = isObject(item.dimensions) ? item.dimensions : item;
@@ -122,7 +122,7 @@ function mediaOf(node: Json): CollectedMedia[] {
   return out;
 }
 
-/** كائن «منشور» بأحد الشكلين: القديم (shortcode + edge_*) أو الجديد (code + like_count). */
+/** A "post" object in either shape: the old one (shortcode + edge_*) or the new one (code + like_count). */
 function looksLikePost(node: Json): boolean {
   const code = str(node.shortcode) ?? str(node.code);
   if (!code) return false;
@@ -135,7 +135,7 @@ export function parsePosts(payload: unknown, handle: string): CollectedPost[] {
   for (const node of walk(payload)) {
     if (!looksLikePost(node)) continue;
     const owner = str(get(node, 'owner', 'username')) ?? str(get(node, 'user', 'username'));
-    // شبكة «مقترح لك» تظهر في نفس الردود: نأخذ منشورات صاحب الحساب فقط.
+    // The "Suggested for you" grid shows up in the same responses: we take only the account owner's posts.
     if (owner && owner.toLowerCase() !== wanted) continue;
     const code = (str(node.shortcode) ?? str(node.code))!;
     if (seen.has(code)) continue;
@@ -159,12 +159,12 @@ export function parsePosts(payload: unknown, handle: string): CollectedPost[] {
       media: mediaOf(node),
     });
   }
-  // الأحدث أولاً؛ المثبّتة قد تأتي في البداية بتاريخ أقدم.
+  // Newest first; pinned posts may arrive at the start with an older date.
   return [...seen.values()].sort((a, b) => (b.publishedAt ?? '').localeCompare(a.publishedAt ?? ''));
 }
 
-// ── خطة بديلة: قراءة DOM ─────────────────────────────────────────────────────
-/** «1,234 Followers, 56 Following, 78 Posts - …» أو «12.5K Followers…» من وسم og:description. */
+// ── Fallback: reading the DOM ────────────────────────────────────────────────
+/** "1,234 Followers, 56 Following, 78 Posts - …" or "12.5K Followers…" from the og:description tag. */
 export function parseOgDescription(text: string): {followers: number | null; following: number | null; postCount: number | null} {
   const grab = (label: string): number | null => {
     const match = new RegExp(`([\\d.,]+)\\s*([KMB])?\\s+${label}`, 'i').exec(text);
@@ -226,13 +226,13 @@ async function readDomFallback(page: Page, handle: string): Promise<{profile: Co
   return {profile, posts};
 }
 
-// ── التشغيل ──────────────────────────────────────────────────────────────────
+// ── Run ──────────────────────────────────────────────────────────────────────
 export interface InstagramProfileResult {
   profile: CollectedProfile | null;
   posts: CollectedPost[];
-  /** من أين جاءت البيانات — للشفافية وللتشخيص عند تغيّر الموقع. */
+  /** Where the data came from — for transparency, and for diagnosis when the site changes. */
   source: 'network' | 'dom' | 'mixed' | 'none';
-  /** الردود الخام التي التُقطت (تُحفظ كـ fixtures). */
+  /** The raw responses that were captured (saved as fixtures). */
   rawPayloads: {url: string; body: unknown}[];
   warnings: string[];
 }
@@ -263,7 +263,7 @@ export async function readInstagramProfile(
       if (text.length < 20 || text.length > 6_000_000) return;
       rawPayloads.push({url: response.url().split('?')[0]!, body: JSON.parse(text.replace(/^for \(;;\);/, ''))});
     } catch {
-      // ليس JSON أو أُغلق الرد: نتجاهله.
+      // Not JSON, or the response was closed: ignore it.
     }
   };
   page.on('response', onResponse);
@@ -322,7 +322,7 @@ function dedupe(posts: CollectedPost[]): CollectedPost[] {
   const byId = new Map<string, CollectedPost>();
   for (const post of posts) {
     const existing = byId.get(post.id);
-    // نفس المنشور قد يظهر في ردّين؛ نحتفظ بالأغنى بيانات.
+    // The same post may appear in two responses; we keep the one with richer data.
     if (!existing || (existing.likes === null && post.likes !== null) || (!existing.caption && post.caption)) byId.set(post.id, post);
   }
   return [...byId.values()].sort((a, b) => (b.publishedAt ?? '').localeCompare(a.publishedAt ?? ''));

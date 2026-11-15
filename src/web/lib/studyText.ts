@@ -3,9 +3,9 @@ import {useTranslation} from 'react-i18next';
 import {MODULES, RECIPES, type ModuleId} from '../../core/recipes';
 
 /**
- * نصوص الوصفات والوحدات من ملفات اللغة. المفاتيح ديناميكية (types.<id>.label)،
- * فنتحقق هنا مرة واحدة من أن المعرّف معروف بدل تشتيت التحويلات في الصفحات.
- * معرّف غير معروف (وصفة أضيفت بلا ترجمة بعد) يُعرض كما هو بدل أن يكسر الصفحة.
+ * Recipe and module texts from the locale files. The keys are dynamic (types.<id>.label),
+ * so we check here, once, that the ID is known instead of scattering type casts across the pages.
+ * An unknown ID (a recipe added with no translation yet) is shown as-is instead of breaking the page.
  */
 type RecipeId = 'full' | 'account' | 'content' | 'ads' | 'product' | 'market' | 'competitors' | 'strategy' | 'audit' | 'monitor';
 

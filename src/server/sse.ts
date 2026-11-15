@@ -3,8 +3,8 @@ import type {ServerResponse} from 'node:http';
 import {eventsAfter, lastEventId} from '../core/bridge/core';
 
 /**
- * بثّ الأحداث للواجهة (SSE). الخادم يتابع جدول events في SQLite بدل قناة بين العمليات:
- * أي عملية تكتب حدثاً (CLI من جلسة Claude، خادم MCP، عامل الجمع) يصل للواجهة خلال أقل من ثانية.
+ * Event streaming to the UI (SSE). The server follows the events table in SQLite instead of a channel between processes:
+ * an event written by any process (a Claude session's CLI, the MCP server, the collection worker) reaches the UI in under a second.
  */
 
 const POLL_MS = 600;
@@ -24,7 +24,7 @@ function tick(): void {
   try {
     rows = eventsAfter(cursor);
   } catch {
-    return; // القاعدة مشغولة للحظة: نحاول في الدورة التالية.
+    return; // The database is busy for a moment: we try again on the next cycle.
   }
   for (const row of rows) {
     cursor = row.id;

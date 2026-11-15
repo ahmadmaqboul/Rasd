@@ -1,6 +1,6 @@
 import '@astryxdesign/core/reset.css';
 import '@astryxdesign/core/astryx.css';
-// IBM Plex Sans Arabic مستضاف محلياً (بلا طلبات خارجية) بكل الأوزان المطلوبة 300–700.
+// IBM Plex Sans Arabic, self-hosted (no external requests), in all the required weights 300–700.
 import '@fontsource/ibm-plex-sans-arabic/300.css';
 import '@fontsource/ibm-plex-sans-arabic/400.css';
 import '@fontsource/ibm-plex-sans-arabic/500.css';

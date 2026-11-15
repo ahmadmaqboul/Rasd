@@ -1,7 +1,7 @@
 /**
- * وحدات التحليل (§6.1) وأنواع الدراسات كوصفات تصريحية (§7).
- * إضافة نوع دراسة جديد = إضافة عنصر هنا + نصوصه في locales، بلا مسار كود جديد.
- * النصوص الظاهرة للمستخدم ليست هنا: تُقرأ من locales/<lang>/studies.json بالمفتاح types.<id>.
+ * Analysis modules (§6.1) and study types as declarative recipes (§7).
+ * Adding a new study type = adding an entry here + its texts in locales, with no new code path.
+ * User-visible texts are not here: they are read from locales/<lang>/studies.json under the key types.<id>.
  */
 
 export const MODULES = [
@@ -22,24 +22,24 @@ export const MODULES = [
 ] as const;
 export type ModuleId = (typeof MODULES)[number];
 
-/** نوع المدخل المطلوب الوحيد لكل دراسة؛ كل ما عداه له قيمة افتراضية. */
+/** The one required input type for each study; everything else has a default value. */
 export type RequiredInput =
-  | 'accounts' // رابط حساب أو أكثر
-  | 'account_or_keyword' // حساب، منتج، أو كلمة مفتاحية
-  | 'product' // اسم منتج
-  | 'category' // فئة + منطقة
-  | 'own_and_competitors' // حسابنا + المنافسون
-  | 'own_account' // حسابنا
-  | 'watchlist' // قائمة مراقبة
-  | 'business_profile'; // ملف البزنس
+  | 'accounts' // one or more account links
+  | 'account_or_keyword' // an account, a product, or a keyword
+  | 'product' // a product name
+  | 'category' // a category + a region
+  | 'own_and_competitors' // our account + the competitors
+  | 'own_account' // our account
+  | 'watchlist' // a watchlist
+  | 'business_profile'; // the business profile
 
 export interface Recipe {
   id: string;
   requiredInput: RequiredInput;
   modules: ModuleId[];
-  /** دراسات مركّبة تشغّل وصفات أخرى وتدمج نتائجها. */
+  /** Composite studies run other recipes and merge their findings. */
   composes?: string[];
-  /** تظهر كبطاقة مميّزة في الرئيسية. */
+  /** Shown as a featured card on the home page. */
   featured?: boolean;
 }
 
@@ -106,7 +106,7 @@ export function getRecipe(id: string): Recipe | undefined {
   return RECIPES.find(r => r.id === id);
 }
 
-/** الوحدات الفعلية لوصفة، بعد فكّ الدراسات المركّبة. */
+/** The actual modules of a recipe, after expanding composite studies. */
 export function resolveModules(id: string, seen = new Set<string>()): ModuleId[] {
   const recipe = getRecipe(id);
   if (!recipe || seen.has(id)) return [];

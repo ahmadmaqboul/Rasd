@@ -2,31 +2,31 @@ import {sql} from 'drizzle-orm';
 import {index, integer, sqliteTable, text, uniqueIndex} from 'drizzle-orm/sqlite-core';
 
 /**
- * مخطط Phase 0: الحد الأدنى لإثبات دورة الجسر (دراسة ← حزمة ← نتائج ← واجهة).
- * المخطط الكامل (§11: BusinessProfile, TrackedEntity, Post, Ad, …) يُبنى في Phase 1.
+ * Phase 0 schema: the minimum needed to prove the bridge loop (study → package → findings → UI).
+ * The full schema (§11: BusinessProfile, TrackedEntity, Post, Ad, …) is built in Phase 1.
  */
 
 export const STUDY_STATUSES = [
-  'draft', // مسودة
-  'collecting', // جاري الجمع
-  'ready', // جاهز للتحليل
-  'analyzing', // جاري التحليل
-  'done', // مكتمل
-  'partial', // جزئي
-  'failed', // فشل
+  'draft', // draft
+  'collecting', // collection in progress
+  'ready', // ready for analysis
+  'analyzing', // analysis in progress
+  'done', // completed
+  'partial', // partial
+  'failed', // failed
 ] as const;
 export type StudyStatus = (typeof STUDY_STATUSES)[number];
 
 export const studies = sqliteTable('studies', {
   id: integer('id').primaryKey({autoIncrement: true}),
-  /** معرّف الوصفة (recipe) في src/core/recipes.ts */
+  /** The recipe ID in src/core/recipes.ts */
   type: text('type').notNull(),
   title: text('title').notNull(),
   status: text('status').$type<StudyStatus>().notNull().default('draft'),
   params: text('params', {mode: 'json'}).$type<Record<string, unknown>>().notNull().default(sql`'{}'`),
-  /** الوحدات التحليلية المطلوبة لهذه الدراسة (من الوصفة، قابلة للتعديل). */
+  /** The analysis modules requested for this study (from the recipe, editable). */
   modules: text('modules', {mode: 'json'}).$type<string[]>().notNull().default(sql`'[]'`),
-  /** بيانات تجريبية مولَّدة (ليست من منصة حقيقية) — تُعرض بوضوح في الواجهة والتقرير. */
+  /** Generated demo data (not from a real platform) — shown clearly in the UI and the report. */
   isDemo: integer('is_demo', {mode: 'boolean'}).notNull().default(false),
   createdAt: integer('created_at', {mode: 'timestamp_ms'}).notNull(),
   updatedAt: integer('updated_at', {mode: 'timestamp_ms'}).notNull(),
@@ -40,7 +40,7 @@ export const findings = sqliteTable(
       .notNull()
       .references(() => studies.id, {onDelete: 'cascade'}),
     module: text('module').notNull(),
-    /** مفتاح ثابت داخل الوحدة: إعادة الكتابة بنفس المفتاح تحدّث النتيجة (استئناف بلا تكرار). */
+    /** A stable key within the module: writing again with the same key updates the finding (resuming without duplication). */
     key: text('key').notNull(),
     title: text('title').notNull(),
     claim: text('claim').notNull(),
@@ -55,8 +55,8 @@ export const findings = sqliteTable(
 );
 
 /**
- * سجل أحداث ملحق فقط. أي عملية (الخادم، CLI، MCP، العمّال) تكتب هنا،
- * والخادم يتابع السجل ويبثّه للواجهة عبر SSE — فلا نحتاج قناة بين العمليات.
+ * Append-only event log. Any process (the server, the CLI, MCP, the workers) writes here,
+ * and the server follows the log and streams it to the UI over SSE — so we need no channel between processes.
  */
 export const events = sqliteTable(
   'events',

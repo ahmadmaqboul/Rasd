@@ -7,10 +7,10 @@ import {readAdLibrary, type AdLibraryQuery} from '../collectors/meta-ad-library'
 import {parseArgs, print} from './args';
 
 /**
- * سبايك مكتبة إعلانات ميتا (Phase 0): إعلانات كلمة مفتاحية أو صفحة مع تواريخ البدء.
- * المكتبة عامة — لا تحتاج تسجيل دخول، فلا نستعمل أي جلسة محفوظة هنا.
+ * Meta Ad Library spike (Phase 0): ads for a keyword or a page, with their start dates.
+ * The library is public — it needs no login, so we use no saved session here.
  *
- *   npm run spike:adlibrary -- --keyword "شاحن" [--country PS] [--max 30] [--headed]
+ *   npm run spike:adlibrary -- --keyword "charger" [--country PS] [--max 30] [--headed]
  *   npm run spike:adlibrary -- --page 123456789012345
  */
 
@@ -30,7 +30,7 @@ const browser = await chromium.launch({headless: !flags.headed, proxy: proxyFrom
 const started = Date.now();
 
 try {
-  // واجهة إنجليزية ثابتة: النصوص التي نتحقق منها (رسائل الخلوّ، الموافقة) لا تتغير مع لغة الجهاز.
+  // Fixed English UI: the texts we check for (empty-results messages, consent prompt) don't change with the machine's language.
   const context = await browser.newContext({locale: 'en-US', viewport: {width: 1280, height: 900}});
   const page = await context.newPage();
   const result = await readAdLibrary(page, query, {

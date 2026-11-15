@@ -1,6 +1,6 @@
 #!/usr/bin/env node
-// مُشغِّل `rasd`: يحمّل TypeScript مباشرة عبر tsx فلا نحتاج خطوة بناء للـ CLI.
-// الاستعمال (يعمل على ماك/لينكس/ويندوز):  node bin/rasd.mjs study list
+// `rasd` launcher: loads TypeScript directly through tsx, so the CLI needs no build step.
+// Usage (works on macOS/Linux/Windows):  node bin/rasd.mjs study list
 import {register} from 'tsx/esm/api';
 
 register();

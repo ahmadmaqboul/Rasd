@@ -24,7 +24,7 @@ function readColorMode(): ColorMode {
   return saved === 'light' || saved === 'dark' ? saved : 'system';
 }
 
-/** روابط Astryx (SideNavItem, Button href, ClickableCard…) تمرّ عبر react-router بلا إعادة تحميل. */
+/** Astryx links (SideNavItem, Button href, ClickableCard…) go through react-router with no page reload. */
 function AppLink({href, to, ...rest}: Omit<ComponentProps<typeof RouterLink>, 'to'> & {href?: string; to?: string}) {
   return <RouterLink to={to ?? href ?? '#'} {...rest} />;
 }
@@ -37,7 +37,7 @@ export function Providers({children}: {children: ReactNode}) {
   const dir = textDirection(language);
   const [mode, setModeState] = useState<ColorMode>(readColorMode);
 
-  // Astryx لا يضبط dir على <html>؛ نضبطه نحن مع كل تغيير لغة (المتصفح يحتاجه لمحاذاة النص).
+  // Astryx does not set dir on <html>; we set it ourselves on every language change (the browser needs it to align text).
   useEffect(() => {
     document.documentElement.lang = language;
     document.documentElement.dir = dir;
@@ -55,7 +55,7 @@ export function Providers({children}: {children: ReactNode}) {
   );
 
   const theme = themes[defaultThemeSlug as keyof typeof themes];
-  // أرقام غربية افتراضياً داخل مكوّنات Astryx أيضاً (تقويم، ترقيم صفحات…).
+  // Western digits by default inside Astryx components too (calendar, pagination…).
   const astryxLocale = formatLocale({...DEFAULT_REGIONAL, language});
 
   return (

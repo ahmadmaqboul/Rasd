@@ -1,7 +1,7 @@
 import {defineConfig} from 'vite';
 import react from '@vitejs/plugin-react';
 
-// الواجهة تُخدَّم من Vite في التطوير، وطلبات /api و /media تُحوَّل إلى خادم Fastify المحلي.
+// The UI is served by Vite in development, and /api and /media requests are proxied to the local Fastify server.
 const API = `http://127.0.0.1:${process.env.RASD_PORT ?? 4310}`;
 
 export default defineConfig({

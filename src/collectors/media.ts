@@ -5,14 +5,14 @@ import {ensureDir} from '../core/paths';
 import type {CollectedMedia} from '../core/schemas';
 import {randomBetween} from './browser';
 
-/** سقف حجم الملف الواحد — الصور فقط في Phase 0؛ الفيديو (ولقطاته) في Phase 2. */
+/** Size cap for a single file — images only in Phase 0; video (and its frame captures) in Phase 2. */
 const MAX_BYTES = 15 * 1024 * 1024;
 
 const EXTENSIONS: Record<string, string> = {'image/jpeg': 'jpg', 'image/png': 'png', 'image/webp': 'webp', 'image/heic': 'heic'};
 
 /**
- * ينزّل صور عنصر عبر سياق المتصفح نفسه (نفس الجلسة التي عرضت الصفحة)، بفواصل قصيرة.
- * فشل صورة لا يُفشل العنصر: نكمل بما نجح ونعيد عدد ما فشل.
+ * Downloads an item's images through the same browser context (the same session that rendered the page), with short gaps.
+ * A failed image does not fail the item: we carry on with what succeeded and return how many failed.
  */
 export async function downloadImages(
   context: BrowserContext,

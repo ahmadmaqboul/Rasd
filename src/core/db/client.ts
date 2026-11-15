@@ -10,8 +10,8 @@ export type Db = BetterSQLite3Database<typeof schema>;
 let cached: {path: string; db: Db; raw: Database.Database} | undefined;
 
 /**
- * يفتح قاعدة SQLite المحلية ويطبّق الترحيلات. آمن للاستدعاء من عدة عمليات
- * (الخادم و CLI و MCP) بفضل WAL و busy_timeout.
+ * Opens the local SQLite database and applies the migrations. Safe to call from several processes
+ * (the server, the CLI and MCP) thanks to WAL and busy_timeout.
  */
 export function getDb(): Db {
   const file = paths.db();

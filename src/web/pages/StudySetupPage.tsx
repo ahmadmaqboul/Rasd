@@ -16,8 +16,8 @@ import {recipeIcon} from '../lib/recipeIcons';
 import {useStudyText} from '../lib/studyText';
 
 /**
- * معاينة وصفة الدراسة. شاشة الإعداد الكاملة (مدخل واحد + «خيارات متقدمة») تُبنى في Phase 4؛
- * هنا نعرض بصدق ما المطلوب وما سيُحلَّل، بلا زر تشغيل لا يعمل.
+ * Preview of the study recipe. The full setup screen (one input + "Advanced options") is built in Phase 4;
+ * here we show honestly what is required and what will be analyzed, with no run button that doesn't work.
  */
 export function StudySetupPage() {
   const {t} = useTranslation('studies');

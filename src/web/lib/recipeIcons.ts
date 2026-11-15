@@ -13,7 +13,7 @@ import {
   UserCircleIcon,
 } from '@heroicons/react/24/outline';
 
-/** أيقونة لكل نوع دراسة. نوع بلا أيقونة هنا يأخذ الأيقونة الافتراضية — فالوصفات تبقى تصريحية. */
+/** An icon for each study type. A type with no icon here gets the default icon — so the recipes stay declarative. */
 const ICONS: Record<string, IconType> = {
   full: SparklesIcon,
   account: UserCircleIcon,

@@ -7,12 +7,12 @@ import {PageFrame} from '../components/PageFrame';
 
 interface PlaceholderPageProps {
   section: 'monitors' | 'templates' | 'business';
-  /** المرحلة التي يُبنى فيها هذا القسم — تُعرض بصدق بدل واجهة وهمية. */
+  /** The phase in which this section gets built — shown honestly instead of a fake UI. */
   phase: number;
   icon: IconType;
 }
 
-/** قسم لم يُبنَ بعد: حالة فارغة تشرح ما سيكون هنا، بلا أزرار لا تعمل. */
+/** A section that is not built yet: an empty state explaining what will be here, with no buttons that don't work. */
 export function PlaceholderPage({section, phase, icon}: PlaceholderPageProps) {
   const {t} = useTranslation('sections');
   return (

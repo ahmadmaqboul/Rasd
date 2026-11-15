@@ -1,5 +1,5 @@
-// أداة للمطوّر — تلتقط لقطات فحص RTL الموثّقة في docs/rtl.md.
-// التشغيل (والتطبيق شغّال على 5173):  node scripts/rtl-screenshots.mjs [outDir]
+// Developer tool — captures the RTL check screenshots documented in docs/rtl.md.
+// Run (with the app running on 5173):  node scripts/rtl-screenshots.mjs [outDir]
 import {chromium} from 'playwright';
 import {mkdirSync} from 'node:fs';
 import {join} from 'node:path';
@@ -22,13 +22,13 @@ async function open(path, opts = {}) {
   return page;
 }
 
-// 1) كل قسم من صفحة الفحص على حدة
+// 1) Each section of the check page on its own
 {
   const page = await open('/dev/rtl');
   for (const id of ['inputs', 'menus', 'icons', 'tabs', 'table', 'progress', 'mixed', 'calendar']) {
     await page.locator(`[data-testid="rtl-${id}"]`).screenshot({path: join(out, `${id}.png`)});
   }
-  // قياسات موضوعية بدل الاعتماد على العين فقط
+  // Objective measurements instead of relying on the eye alone
   report.html = await page.evaluate(() => ({dir: document.documentElement.dir, lang: document.documentElement.lang}));
   report.sideNavSide = await page.evaluate(() => {
     const nav = document.querySelector('nav');
@@ -66,13 +66,13 @@ async function open(path, opts = {}) {
     return {arabicIndic: /[٠-٩]/.test(text), western: /[0-9]/.test(text)};
   });
 
-  // القائمة المنسدلة
+  // Dropdown menu
   await page.locator('[data-testid="rtl-menus"] button', {hasText: 'خيارات'}).click();
   await page.waitForTimeout(350);
   await page.screenshot({path: join(out, 'menu-open.png'), clip: {x: 0, y: 0, width: 1280, height: 900}});
   await page.keyboard.press('Escape');
 
-  // قائمة الاختيار
+  // Selector list
   await page.locator('[data-testid="rtl-inputs"]').getByRole('combobox').first().click().catch(() => {});
   await page.waitForTimeout(350);
   await page.screenshot({path: join(out, 'selector-open.png')});
@@ -80,7 +80,7 @@ async function open(path, opts = {}) {
   await page.close();
 }
 
-// 2) النوافذ المنبثقة
+// 2) Popup overlays
 for (const kind of ['dialog', 'drawer']) {
   const page = await open(`/dev/rtl?open=${kind}`);
   await page.waitForTimeout(500);
@@ -95,7 +95,7 @@ for (const kind of ['dialog', 'drawer']) {
   await page.close();
 }
 
-// 3) الصفحة كاملة: فاتح، داكن، قائمة مطويّة، جوّال
+// 3) Full page: light, dark, collapsed nav, mobile
 {
   const page = await open('/dev/rtl');
   await page.screenshot({path: join(out, 'page-light.png'), fullPage: true});

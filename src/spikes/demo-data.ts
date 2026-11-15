@@ -6,9 +6,9 @@ import {ensureDir} from '../core/paths';
 import type {CollectedPost, CollectedProfile} from '../core/schemas';
 
 /**
- * بيانات تجريبية مولَّدة لسبايك الجسر: حساب وهمي لمتجر إكسسوارات + 5 منشورات بصور.
- * الصور تُرسم محلياً (HTML ← لقطة) وعليها علامة «تجريبي» — لا شيء هنا من منصة حقيقية.
- * الغرض الوحيد: إثبات دورة (حزمة ← تحليل في جلسة Claude ← نتائج ← واجهة) بلا شبكة.
+ * Generated demo data for the bridge spike: a fictional account for an accessories store + 5 posts with images.
+ * The images are drawn locally (HTML → screenshot) and carry a "demo" mark — nothing here comes from a real platform.
+ * The sole purpose: proving the loop (package → analysis in a Claude session → findings → UI) with no network.
  */
 
 const require = createRequire(import.meta.url);
@@ -41,7 +41,7 @@ interface DemoPost {
   likes: number;
   comments: number;
   views: number | null;
-  /** HTML داخل <body> + CSS خاص بالمنشور. */
+  /** HTML inside <body> + CSS specific to the post. */
   css: string;
   body: string;
 }

@@ -13,7 +13,7 @@ import {useColorMode, type ColorMode} from '../Providers';
 
 const MODES: ColorMode[] = ['system', 'light', 'dark'];
 
-/** الإعدادات — Phase 0: المظهر فقط. الجلسات والحدود وحالة الجسر في Phase 1. */
+/** Settings — Phase 0: appearance only. Sessions, limits and the bridge status come in Phase 1. */
 export function SettingsPage() {
   const {t} = useTranslation(['sections', 'common']);
   const {mode, setMode} = useColorMode();

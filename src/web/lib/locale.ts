@@ -1,8 +1,8 @@
 import type {Language} from '../i18n';
 
 /**
- * إعدادات العرض الإقليمية. الافتراضي حسب المواصفات: أرقام غربية (0-9) وعملة الشيكل.
- * تصبح قابلة للتغيير من الإعدادات في Phase 1 (أرقام هندية، عملة أخرى).
+ * Regional display settings. The default per the spec: Western digits (0-9) and the shekel as currency.
+ * They become changeable from Settings in Phase 1 (Arabic-Indic digits, another currency).
  */
 export type Digits = 'latn' | 'arab';
 
@@ -14,7 +14,7 @@ export interface RegionalSettings {
 
 export const DEFAULT_REGIONAL: RegionalSettings = {language: 'ar', digits: 'latn', currency: 'ILS'};
 
-/** وسم BCP 47 للتنسيق، مثل ar-u-nu-latn (عربي بأرقام غربية). */
+/** BCP 47 tag for formatting, e.g. ar-u-nu-latn (Arabic with Western digits). */
 export function formatLocale(settings: RegionalSettings = DEFAULT_REGIONAL): string {
   return `${settings.language}-u-nu-${settings.digits}`;
 }

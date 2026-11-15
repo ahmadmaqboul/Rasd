@@ -7,8 +7,8 @@ import {MODULES, type ModuleId} from '../recipes';
 import {FindingInput, PackageIndex, formatZodError} from '../schemas';
 
 /**
- * نواة الجسر: العمليات نفسها تخدم CLI (`rasd`) وخادم MCP (Phase 3) وخادم الواجهة.
- * لا شيء هنا يستدعي نموذج ذكاء اصطناعي — الجسر يقرأ ويتحقق ويخزّن فقط.
+ * Bridge core: the same operations serve the CLI (`rasd`), the MCP server (Phase 3) and the UI server.
+ * Nothing here calls an AI model — the bridge only reads, validates and stores.
  */
 
 export class BridgeError extends Error {
@@ -36,7 +36,7 @@ export function lastEventId(): number {
   return row?.id ?? 0;
 }
 
-// ── الدراسات ─────────────────────────────────────────────────────────────────
+// ── Studies ──────────────────────────────────────────────────────────────────
 export function listStudies(): StudyRow[] {
   return getDb().select().from(studies).orderBy(desc(studies.id)).all();
 }
@@ -76,7 +76,7 @@ export function createStudy(input: CreateStudyInput): StudyRow {
   return row;
 }
 
-/** الحالات التي يحق للجسر (جلسة التحليل) ضبطها، ومن أي حالة. */
+/** The statuses the bridge (the analysis session) is allowed to set, and from which status. */
 const BRIDGE_TRANSITIONS: Partial<Record<StudyStatus, StudyStatus[]>> = {
   analyzing: ['ready', 'analyzing', 'partial', 'done'],
   done: ['analyzing'],
@@ -108,7 +108,7 @@ export function setStudyStatus(id: number, status: StudyStatus, opts: {fromBridg
   return row;
 }
 
-// ── الحزمة ───────────────────────────────────────────────────────────────────
+// ── Package ──────────────────────────────────────────────────────────────────
 export function getPackageIndex(id: number): PackageIndex {
   const file = resolveInside(paths.studyPackage(id), 'index.json');
   if (!existsSync(file)) {
@@ -129,7 +129,7 @@ export interface ModuleData {
   playbook: string | null;
   packageDir: string;
   files: {path: string; absolute: string; content: unknown}[];
-  /** النتائج المكتوبة سابقاً لهذه الوحدة (للاستئناف بلا تكرار). */
+  /** Findings already written for this module (for resuming without repetition). */
   existingFindings: {key: string; title: string}[];
 }
 
@@ -159,7 +159,7 @@ export function getModuleData(id: number, module: string): ModuleData {
   };
 }
 
-// ── النتائج ──────────────────────────────────────────────────────────────────
+// ── Findings ─────────────────────────────────────────────────────────────────
 export function listFindings(id: number, module?: string): FindingRow[] {
   const where = module ? and(eq(findings.studyId, id), eq(findings.module, module)) : eq(findings.studyId, id);
   return getDb().select().from(findings).where(where).orderBy(asc(findings.id)).all();
@@ -175,8 +175,8 @@ export interface AddFindingResult {
 }
 
 /**
- * يتحقق من النتيجة (المخطط + وجود كل دليل في فهرس الحزمة + أن الوحدة ضمن الدراسة) ثم يحفظها.
- * إعادة الكتابة بنفس (الوحدة، المفتاح) تحدّث النتيجة — فالاستئناف بعد انقطاع لا يكرّر شيئاً.
+ * Validates the finding (schema + every evidence ID exists in the package index + the module is in the study), then saves it.
+ * Writing again with the same (module, key) updates the finding — so resuming after an interruption duplicates nothing.
  */
 export function addFinding(id: number, raw: unknown): AddFindingResult {
   const study = getStudy(id);

@@ -29,7 +29,7 @@ import {useStudyText} from '../lib/studyText';
 
 const CONFIDENCE_COLOR = {low: 'gray', medium: 'yellow', high: 'green'} as const;
 
-/** زر نسخ أمر التحليل — قلب تدفّق «جاهز للتحليل» (§4). */
+/** The copy button for the analysis command — the heart of the "ready for analysis" flow (§4). */
 function CopyCommandButton({command}: {command: string}) {
   const {t} = useTranslation('studies');
   const [copied, setCopied] = useState(false);
@@ -132,7 +132,7 @@ function FindingCard({finding, evidence}: {finding: Finding; evidence: Record<st
   );
 }
 
-/** عرض الدراسة: الحالة، أمر التحليل، والنتائج التي تكتبها جلسة Claude — تظهر مباشرة عبر SSE. */
+/** Study view: the status, the analysis command, and the findings the Claude session writes — they appear live over SSE. */
 export function StudyViewPage() {
   const {t} = useTranslation(['studies', 'common']);
   const text = useStudyText();
@@ -179,7 +179,7 @@ export function StudyViewPage() {
   const {study, findings, evidence, packageStats} = data;
   const command = `/rasd-analyze ${study.id}`;
 
-  // ترتيب الوحدات كما في الدراسة، ثم أي وحدة كتبت نتائج خارجها.
+  // Module order as in the study, then any module that wrote findings outside it.
   const moduleOrder = [...new Set([...study.modules, ...findings.map(f => f.module)])];
   const byModule = moduleOrder
     .map(module => ({module, items: findings.filter(f => f.module === module)}))

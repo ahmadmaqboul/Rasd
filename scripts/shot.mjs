@@ -1,4 +1,4 @@
-// أداة للمطوّر — لقطة سريعة لصفحة: node scripts/shot.mjs <path> <out.png> [dark] [width] [fullPage]
+// Developer tool — quick screenshot of a page: node scripts/shot.mjs <path> <out.png> [dark] [width] [fullPage]
 import {chromium} from 'playwright';
 const [, , path = '/', out = 'out.png', scheme = 'light', width = '1280', full = 'full'] = process.argv;
 const browser = await chromium.launch();

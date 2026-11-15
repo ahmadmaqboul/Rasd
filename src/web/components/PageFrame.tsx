@@ -9,14 +9,14 @@ import type {ReactNode} from 'react';
 interface PageFrameProps {
   title: string;
   subtitle?: string;
-  /** إجراء واحد أساسي لكل شاشة (§2.1) — يوضع في طرف الترويسة. */
+  /** One primary action per screen (§2.1) — placed at the edge of the header. */
   action?: ReactNode;
-  /** عرض المحتوى الأقصى؛ الصفحات النصية أضيق من الجداول. */
+  /** Maximum content width; text pages are narrower than tables. */
   contentWidth?: number;
   children: ReactNode;
 }
 
-/** إطار الصفحة الموحّد: ترويسة بعنوان h1 + محتوى قابل للتمرير. كل صفحات رَصد تمرّ من هنا. */
+/** The unified page frame: a header with an h1 title + scrollable content. Every Rasd page goes through here. */
 export function PageFrame({title, subtitle, action, contentWidth = 1040, children}: PageFrameProps) {
   return (
     <Layout
