@@ -103,7 +103,7 @@ function EvidenceList({ids, evidence}: {ids: string[]; evidence: Record<string, 
 function FindingCard({finding, evidence}: {finding: Finding; evidence: Record<string, EvidenceItem>}) {
   const {t} = useTranslation(['studies', 'common']);
   return (
-    <Card>
+    <Card data-testid="finding-card">
       <VStack gap={3}>
         <HStack gap={3} vAlign="start">
           <StackItem size="fill">

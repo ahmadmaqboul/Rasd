@@ -219,7 +219,6 @@ function renderBrief(args: {
 
 ${index.isDemo ? '> ⚠️ **بيانات تجريبية مولَّدة** لاختبار الجسر — ليست من حساب حقيقي. اذكر ذلك في كل خلاصة.\n' : ''}
 - **نوع الدراسة:** \`${study.type}\`
-- **الحالة عند بناء الحزمة:** \`${study.status}\`
 - **المعطيات:** \`${JSON.stringify(study.params)}\`
 - **محتوى الحزمة:** ${stats.profiles} حساب، ${stats.posts} منشور، ${stats.ads} إعلان، ${stats.images} صورة.
 

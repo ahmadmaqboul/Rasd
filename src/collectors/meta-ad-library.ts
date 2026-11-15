@@ -1,0 +1,287 @@
+import type {Page, Response} from 'playwright';
+import type {CollectedAd, CollectedMedia} from '../core/schemas';
+import {
+  DEFAULT_PACING,
+  assertNotBlocked,
+  describeNavigationError,
+  humanPause,
+  humanScroll,
+  type Pacing,
+} from './browser';
+
+/**
+ * جامع مكتبة إعلانات ميتا (سبايك Phase 0): إعلانات صفحة أو كلمة مفتاحية مع تواريخ البدء.
+ *
+ * لماذا تصفّح الواجهة لا الـ API الرسمي؟ واجهة Ad Library API (ads_archive) تعيد إعلانات
+ * القضايا الاجتماعية/السياسة من أي بلد، والإعلانات التجارية فقط إذا عُرضت في الاتحاد الأوروبي
+ * أو بريطانيا. إعلانات تجارية تستهدف فلسطين لا تظهر فيها — بينما مكتبة الإعلانات على الويب
+ * عامة وتعرضها لأي زائر بلا تسجيل دخول. التفاصيل والمصادر في docs/decisions.md.
+ *
+ * الطريقة: نفتح صفحة البحث العامة ونقرأ ردود JSON التي يطلبها الموقع لعرض النتائج
+ * (+ البيانات المضمّنة في HTML الأولي)، ونمرّر الصفحة بإيقاع بشري لتحميل المزيد.
+ *
+ * ⚠️ شكل الردود غير موثّق ويتغير. المحلِّل يبحث عن أي كائن فيه ad_archive_id أينما كان،
+ * والردود الخام تُحفظ لتصير fixtures.
+ */
+
+type Json = Record<string, unknown>;
+
+const isObject = (value: unknown): value is Json => typeof value === 'object' && value !== null && !Array.isArray(value);
+const num = (value: unknown): number | null => (typeof value === 'number' && Number.isFinite(value) ? value : null);
+const str = (value: unknown): string | null => (typeof value === 'string' && value.trim().length ? value : null);
+const bool = (value: unknown): boolean | null => (typeof value === 'boolean' ? value : null);
+
+function* walk(value: unknown, depth = 0): Generator<Json> {
+  if (depth > 14) return;
+  if (Array.isArray(value)) {
+    for (const item of value) yield* walk(item, depth + 1);
+  } else if (isObject(value)) {
+    yield value;
+    for (const item of Object.values(value)) yield* walk(item, depth + 1);
+  }
+}
+
+const isoFromSeconds = (value: unknown): string | null => {
+  const seconds = num(value) ?? (typeof value === 'string' && /^\d{9,11}$/.test(value) ? Number(value) : null);
+  return seconds ? new Date(seconds * 1000).toISOString() : null;
+};
+
+/** نص الإعلان قد يكون سلسلة أو {text} أو {markup:{__html}}. قوالب الكتالوج ({{product.name}}) تُترك كما هي. */
+function textOf(value: unknown): string | null {
+  if (typeof value === 'string') return str(value);
+  if (isObject(value)) return str(value.text) ?? str((value.markup as Json | undefined)?.__html)?.replace(/<[^>]+>/g, ' ').trim() ?? null;
+  return null;
+}
+
+function mediaFrom(node: Json): CollectedMedia[] {
+  const out: CollectedMedia[] = [];
+  const images = Array.isArray(node.images) ? node.images.filter(isObject) : [];
+  for (const image of images) {
+    const url = str(image.original_image_url) ?? str(image.resized_image_url);
+    if (url) out.push({type: 'image', url});
+  }
+  const videos = Array.isArray(node.videos) ? node.videos.filter(isObject) : [];
+  for (const video of videos) {
+    const poster = str(video.video_preview_image_url);
+    const url = str(video.video_hd_url) ?? str(video.video_sd_url);
+    if (url) out.push({type: 'video', url});
+    if (poster) out.push({type: 'image', url: poster});
+  }
+  // بطاقات الكاروسيل تحمل صورها مباشرة على البطاقة.
+  const direct = str(node.original_image_url) ?? str(node.resized_image_url);
+  if (direct) out.push({type: 'image', url: direct});
+  const directVideo = str(node.video_hd_url) ?? str(node.video_sd_url);
+  if (directVideo) out.push({type: 'video', url: directVideo});
+  const directPoster = str(node.video_preview_image_url);
+  if (directPoster) out.push({type: 'image', url: directPoster});
+  return out;
+}
+
+export function daysBetween(startIso: string | null, endIso: string | null, now = new Date()): number | null {
+  if (!startIso) return null;
+  const end = endIso ? new Date(endIso) : now;
+  const days = Math.floor((end.getTime() - new Date(startIso).getTime()) / 86_400_000);
+  return days >= 0 ? days + 1 : null;
+}
+
+/** يستخرج كل الإعلانات من أي JSON (رد GraphQL أو بيانات مضمّنة في الصفحة). */
+export function parseAds(payload: unknown, now = new Date()): CollectedAd[] {
+  const byId = new Map<string, CollectedAd>();
+  for (const node of walk(payload)) {
+    const rawId = node.ad_archive_id ?? node.adArchiveID;
+    const id = typeof rawId === 'number' ? String(rawId) : str(rawId);
+    if (!id || !/^\d{6,}$/.test(id)) continue;
+    const snapshot = isObject(node.snapshot) ? node.snapshot : {};
+    const cards = Array.isArray(snapshot.cards) ? snapshot.cards.filter(isObject) : [];
+    const firstCard = cards[0] ?? {};
+
+    const startDate = isoFromSeconds(node.start_date) ?? isoFromSeconds(node.startDate);
+    const endDate = isoFromSeconds(node.end_date) ?? isoFromSeconds(node.endDate);
+    const isActive = bool(node.is_active) ?? bool(node.isActive);
+    const platforms = (Array.isArray(node.publisher_platform) ? node.publisher_platform : Array.isArray(node.publisherPlatform) ? node.publisherPlatform : [])
+      .filter((p): p is string => typeof p === 'string')
+      .map(p => p.toLowerCase());
+
+    const media = [...mediaFrom(snapshot), ...cards.flatMap(mediaFrom)];
+    const uniqueMedia = [...new Map(media.map(m => [m.url, m])).values()];
+
+    const ad: CollectedAd = {
+      id,
+      platform: 'meta',
+      url: `https://www.facebook.com/ads/library/?id=${id}`,
+      pageId: str(node.page_id) ?? str(snapshot.page_id) ?? (num(node.page_id) !== null ? String(node.page_id) : null),
+      pageName: str(node.page_name) ?? str(snapshot.page_name),
+      isActive,
+      startDate,
+      endDate: isActive ? null : endDate,
+      daysRunning: daysBetween(startDate, isActive ? null : endDate, now),
+      platforms,
+      variants: num(node.collation_count) ?? num(node.collationCount),
+      body: textOf(snapshot.body) ?? textOf(firstCard.body) ?? '',
+      title: str(snapshot.title) ?? str(firstCard.title),
+      cta: str(snapshot.cta_text) ?? str(firstCard.cta_text),
+      linkUrl: str(snapshot.link_url) ?? str(firstCard.link_url),
+      format: str(snapshot.display_format)?.toLowerCase() ?? null,
+      media: uniqueMedia,
+    };
+
+    const existing = byId.get(id);
+    // النسخة التي تحمل snapshot أغنى من مجرد إشارة بالمعرّف.
+    if (!existing || (!existing.startDate && ad.startDate) || (existing.media.length === 0 && ad.media.length > 0)) byId.set(id, ad);
+  }
+  return [...byId.values()];
+}
+
+/** JSON المضمّن في HTML الأولي: وسوم <script type="application/json"> التي تذكر ad_archive_id. */
+export function parseEmbeddedJson(html: string): unknown[] {
+  const out: unknown[] = [];
+  const pattern = /<script[^>]*type="application\/json"[^>]*>([\s\S]*?)<\/script>/g;
+  for (const match of html.matchAll(pattern)) {
+    const text = match[1]!;
+    if (!text.includes('ad_archive_id')) continue;
+    try {
+      out.push(JSON.parse(text));
+    } catch {
+      // وسم تالف: نتجاوزه.
+    }
+  }
+  return out;
+}
+
+/** ردود GraphQL قد تكون عدة كائنات JSON في أسطر متتالية، وقد تبدأ بـ «for (;;);». */
+export function parseGraphqlBody(text: string): unknown[] {
+  const cleaned = text.replace(/^for \(;;\);/, '').trim();
+  try {
+    return [JSON.parse(cleaned)];
+  } catch {
+    const out: unknown[] = [];
+    for (const line of cleaned.split('\n')) {
+      try {
+        if (line.trim()) out.push(JSON.parse(line));
+      } catch {
+        // سطر غير مكتمل.
+      }
+    }
+    return out;
+  }
+}
+
+// ── بناء رابط البحث ──────────────────────────────────────────────────────────
+export type AdLibraryQuery = {kind: 'keyword'; keyword: string} | {kind: 'page'; pageId: string};
+
+export interface AdLibraryOptions {
+  /** رمز الدولة بحرفين (PS, JO, IL…) أو ALL لكل الدول. */
+  country?: string;
+  /** all = النشطة والمتوقفة. */
+  status?: 'all' | 'active' | 'inactive';
+  maxAds?: number;
+  pacing?: Pacing;
+}
+
+export function buildAdLibraryUrl(query: AdLibraryQuery, options: AdLibraryOptions = {}): string {
+  const params = new URLSearchParams({
+    active_status: options.status ?? 'all',
+    ad_type: 'all',
+    country: (options.country ?? 'ALL').toUpperCase(),
+    media_type: 'all',
+  });
+  if (query.kind === 'keyword') {
+    params.set('q', query.keyword);
+    params.set('search_type', 'keyword_unordered');
+  } else {
+    if (!/^\d+$/.test(query.pageId)) throw new Error('معرّف الصفحة يجب أن يكون رقماً (Page ID).');
+    params.set('view_all_page_id', query.pageId);
+    params.set('search_type', 'page');
+  }
+  return `https://www.facebook.com/ads/library/?${params.toString()}`;
+}
+
+// ── التشغيل ──────────────────────────────────────────────────────────────────
+export interface AdLibraryResult {
+  ads: CollectedAd[];
+  url: string;
+  source: 'network' | 'embedded' | 'mixed' | 'none';
+  rawPayloads: {url: string; body: unknown}[];
+  warnings: string[];
+}
+
+export async function readAdLibrary(page: Page, query: AdLibraryQuery, options: AdLibraryOptions = {}): Promise<AdLibraryResult> {
+  const pacing = options.pacing ?? DEFAULT_PACING;
+  const maxAds = options.maxAds ?? 30;
+  const url = buildAdLibraryUrl(query, options);
+  const rawPayloads: AdLibraryResult['rawPayloads'] = [];
+  const warnings: string[] = [];
+  const fromNetwork = new Map<string, CollectedAd>();
+  const fromEmbedded = new Map<string, CollectedAd>();
+
+  const onResponse = async (response: Response) => {
+    if (!/\/api\/graphql/.test(response.url()) || response.status() !== 200) return;
+    try {
+      const text = await response.text();
+      if (!text.includes('ad_archive_id')) return;
+      for (const body of parseGraphqlBody(text)) {
+        rawPayloads.push({url: '/api/graphql/', body});
+        for (const ad of parseAds(body)) fromNetwork.set(ad.id, ad);
+      }
+    } catch {
+      // رد أُغلق قبل قراءته.
+    }
+  };
+  page.on('response', onResponse);
+
+  try {
+    let html = '';
+    try {
+      const response = await page.goto(url, {waitUntil: 'domcontentloaded', timeout: 45_000});
+      html = (await response?.text().catch(() => '')) ?? '';
+    } catch (error) {
+      throw describeNavigationError(error, 'facebook.com');
+    }
+    await assertNotBlocked(page, 'facebook');
+
+    for (const body of parseEmbeddedJson(html)) {
+      rawPayloads.push({url: 'embedded', body});
+      for (const ad of parseAds(body)) fromEmbedded.set(ad.id, ad);
+    }
+
+    // نافذة الموافقة على ملفات الارتباط (تظهر من بعض الدول): نختار الضروري فقط.
+    const consent = page.getByRole('button', {name: /Decline optional cookies|Only allow essential cookies|رفض ملفات تعريف الارتباط الاختيارية/i});
+    if (await consent.count()) {
+      await consent.first().click().catch(() => {});
+      await humanPause(page, pacing);
+    }
+
+    await humanPause(page, pacing);
+    const total = () => new Set([...fromNetwork.keys(), ...fromEmbedded.keys()]).size;
+    let stalled = 0;
+    for (let i = 0; i < pacing.maxScrolls && total() < maxAds && stalled < 2; i += 1) {
+      const before = total();
+      await humanScroll(page, pacing);
+      await assertNotBlocked(page, 'facebook');
+      stalled = total() === before ? stalled + 1 : 0;
+    }
+
+    // الردود اللاحقة أحدث من المضمّن؛ عند التعارض نأخذ الأغنى (الشبكة).
+    const merged = new Map([...fromEmbedded, ...fromNetwork]);
+    const ads = [...merged.values()]
+      .sort((a, b) => (b.startDate ?? '').localeCompare(a.startDate ?? ''))
+      .slice(0, maxAds);
+
+    const source: AdLibraryResult['source'] =
+      fromNetwork.size && fromEmbedded.size ? 'mixed' : fromNetwork.size ? 'network' : fromEmbedded.size ? 'embedded' : 'none';
+
+    if (!ads.length) {
+      const empty = await page.getByText(/No ads match|0 results|لا توجد إعلانات/i).count();
+      warnings.push(
+        empty
+          ? 'مكتبة الإعلانات لا تعرض أي إعلان لهذا البحث.'
+          : 'لم نتمكن من قراءة أي إعلان. قد يكون شكل الموقع تغيّر — الردود الخام محفوظة للتشخيص.',
+      );
+    }
+    if (ads.some(ad => !ad.startDate)) warnings.push('بعض الإعلانات بلا تاريخ بدء في بيانات الموقع.');
+
+    return {ads, url, source, rawPayloads, warnings};
+  } finally {
+    page.off('response', onResponse);
+  }
+}

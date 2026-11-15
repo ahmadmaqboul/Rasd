@@ -1,0 +1,79 @@
+{
+  "data": {
+    "user": {
+      "id": "1000001",
+      "username": "sample_store",
+      "full_name": "متجر العيّنة",
+      "biography": "إكسسوارات جوال 📱 توصيل لكل المحافظات",
+      "external_url": "https://example.com/store",
+      "is_private": false,
+      "is_verified": false,
+      "category_name": "Shopping & retail",
+      "edge_followed_by": {"count": 18432},
+      "edge_follow": {"count": 211},
+      "edge_owner_to_timeline_media": {
+        "count": 412,
+        "edges": [
+          {
+            "node": {
+              "__typename": "GraphImage",
+              "id": "3001",
+              "shortcode": "CaaaAAA111",
+              "display_url": "https://cdn.example.com/a.jpg",
+              "dimensions": {"width": 1080, "height": 1350},
+              "is_video": false,
+              "accessibility_caption": "Photo of a charger",
+              "owner": {"id": "1000001", "username": "sample_store"},
+              "edge_media_to_caption": {"edges": [{"node": {"text": "شاحن 65 واط — 89 شيكل\nاطلب عالخاص"}}]},
+              "edge_media_to_comment": {"count": 57},
+              "edge_liked_by": {"count": 412},
+              "edge_media_preview_like": {"count": 412},
+              "taken_at_timestamp": 1794000000
+            }
+          },
+          {
+            "node": {
+              "__typename": "GraphVideo",
+              "id": "3002",
+              "shortcode": "CbbbBBB222",
+              "display_url": "https://cdn.example.com/b.jpg",
+              "dimensions": {"width": 1080, "height": 1920},
+              "is_video": true,
+              "product_type": "clips",
+              "video_view_count": 14200,
+              "owner": {"id": "1000001", "username": "sample_store"},
+              "edge_media_to_caption": {"edges": [{"node": {"text": "عرض الجمعة 🔥"}}]},
+              "edge_media_to_comment": {"count": 88},
+              "edge_media_preview_like": {"count": 530},
+              "taken_at_timestamp": 1793800000
+            }
+          },
+          {
+            "node": {
+              "__typename": "GraphSidecar",
+              "id": "3003",
+              "shortcode": "CcccCCC333",
+              "display_url": "https://cdn.example.com/c1.jpg",
+              "is_video": false,
+              "owner": {"id": "1000001", "username": "sample_store"},
+              "edge_media_to_caption": {"edges": []},
+              "edge_media_to_comment": {"count": 9},
+              "edge_media_preview_like": {"count": 138},
+              "taken_at_timestamp": 1793600000,
+              "edge_sidecar_to_children": {
+                "edges": [
+                  {"node": {"__typename": "GraphImage", "display_url": "https://cdn.example.com/c1.jpg", "dimensions": {"width": 1080, "height": 1080}}},
+                  {"node": {"__typename": "GraphImage", "display_url": "https://cdn.example.com/c2.jpg", "dimensions": {"width": 1080, "height": 1080}}}
+                ]
+              }
+            }
+          }
+        ]
+      },
+      "edge_related_profiles": {
+        "edges": [{"node": {"username": "someone_else", "full_name": "Other", "is_private": false}}]
+      }
+    }
+  },
+  "status": "ok"
+}

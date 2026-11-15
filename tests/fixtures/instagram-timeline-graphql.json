@@ -1,0 +1,73 @@
+{
+  "data": {
+    "xdt_api__v1__feed__user_timeline_graphql_connection": {
+      "edges": [
+        {
+          "node": {
+            "pk": "4001",
+            "code": "DdddDDD444",
+            "media_type": 1,
+            "taken_at": 1794100000,
+            "like_count": 240,
+            "comment_count": 12,
+            "caption": {"text": "وصل حديثاً: سماعات بلوتوث"},
+            "user": {"pk": "1000001", "username": "sample_store"},
+            "image_versions2": {
+              "candidates": [
+                {"url": "https://cdn.example.com/d_small.jpg", "width": 320, "height": 400},
+                {"url": "https://cdn.example.com/d_large.jpg", "width": 1080, "height": 1350}
+              ]
+            }
+          }
+        },
+        {
+          "node": {
+            "pk": "4002",
+            "code": "DeeeEEE555",
+            "media_type": 2,
+            "product_type": "clips",
+            "taken_at": 1794200000,
+            "like_count": 900,
+            "comment_count": 64,
+            "play_count": 32000,
+            "caption": null,
+            "user": {"pk": "1000001", "username": "sample_store"},
+            "image_versions2": {"candidates": [{"url": "https://cdn.example.com/e.jpg", "width": 720, "height": 1280}]}
+          }
+        },
+        {
+          "node": {
+            "pk": "4003",
+            "code": "DfffFFF666",
+            "media_type": 8,
+            "taken_at": 1794050000,
+            "like_count": 75,
+            "comment_count": 3,
+            "caption": {"text": "ألوان جديدة"},
+            "user": {"pk": "1000001", "username": "sample_store"},
+            "carousel_media": [
+              {"media_type": 1, "image_versions2": {"candidates": [{"url": "https://cdn.example.com/f1.jpg", "width": 1080, "height": 1080}]}},
+              {"media_type": 1, "image_versions2": {"candidates": [{"url": "https://cdn.example.com/f2.jpg", "width": 1080, "height": 1080}]}},
+              {"media_type": 1, "image_versions2": {"candidates": [{"url": "https://cdn.example.com/f3.jpg", "width": 1080, "height": 1080}]}}
+            ]
+          }
+        },
+        {
+          "node": {
+            "pk": "9001",
+            "code": "ZzzzSuggested",
+            "media_type": 1,
+            "taken_at": 1794300000,
+            "like_count": 99999,
+            "comment_count": 500,
+            "caption": {"text": "Suggested post from another account"},
+            "user": {"pk": "777", "username": "another_account"},
+            "image_versions2": {"candidates": [{"url": "https://cdn.example.com/z.jpg", "width": 1080, "height": 1080}]}
+          }
+        }
+      ],
+      "page_info": {"has_next_page": true, "end_cursor": "abc"}
+    }
+  },
+  "status": "ok"
+}

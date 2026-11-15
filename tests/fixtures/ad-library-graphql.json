@@ -1,0 +1,95 @@
+{
+  "data": {
+    "ad_library_main": {
+      "search_results_connection": {
+        "count": 3,
+        "edges": [
+          {
+            "node": {
+              "collated_results": [
+                {
+                  "ad_archive_id": "1111111111111111",
+                  "collation_count": 4,
+                  "collation_id": "555",
+                  "page_id": "200000000000001",
+                  "page_name": "Sample Accessories",
+                  "is_active": true,
+                  "start_date": 1790000000,
+                  "end_date": 1794000000,
+                  "publisher_platform": ["FACEBOOK", "INSTAGRAM"],
+                  "snapshot": {
+                    "page_id": "200000000000001",
+                    "page_name": "Sample Accessories",
+                    "body": {"text": "شاحن 65 واط أصلي — 89 شيكل بدل 120\nالتوصيل لكل المحافظات"},
+                    "title": "اطلب الآن",
+                    "cta_text": "Send message",
+                    "cta_type": "MESSAGE_PAGE",
+                    "link_url": "https://m.me/sample",
+                    "display_format": "IMAGE",
+                    "images": [{"original_image_url": "https://cdn.example.com/ad1.jpg", "resized_image_url": "https://cdn.example.com/ad1_s.jpg"}],
+                    "videos": [],
+                    "cards": []
+                  }
+                }
+              ]
+            }
+          },
+          {
+            "node": {
+              "collated_results": [
+                {
+                  "ad_archive_id": "2222222222222222",
+                  "collation_count": 1,
+                  "page_id": "200000000000002",
+                  "page_name": "Another Store",
+                  "is_active": false,
+                  "start_date": 1785000000,
+                  "end_date": 1786728000,
+                  "publisher_platform": ["INSTAGRAM"],
+                  "snapshot": {
+                    "body": {"text": "عرض خاص على الكفرات"},
+                    "title": null,
+                    "cta_text": "Shop now",
+                    "link_url": "https://example.com/cases",
+                    "display_format": "VIDEO",
+                    "images": [],
+                    "videos": [{"video_hd_url": "https://cdn.example.com/ad2.mp4", "video_sd_url": "https://cdn.example.com/ad2_sd.mp4", "video_preview_image_url": "https://cdn.example.com/ad2_poster.jpg"}],
+                    "cards": []
+                  }
+                }
+              ]
+            }
+          },
+          {
+            "node": {
+              "collated_results": [
+                {
+                  "ad_archive_id": "3333333333333333",
+                  "collation_count": 2,
+                  "page_id": "200000000000001",
+                  "page_name": "Sample Accessories",
+                  "is_active": true,
+                  "start_date": 1793900000,
+                  "end_date": 1794000000,
+                  "publisher_platform": ["FACEBOOK", "INSTAGRAM", "MESSENGER"],
+                  "snapshot": {
+                    "body": {"text": "{{product.brand}}"},
+                    "display_format": "CAROUSEL",
+                    "images": [],
+                    "videos": [],
+                    "cards": [
+                      {"title": "باور بانك 20000", "body": "شحن سريع", "cta_text": "Shop now", "link_url": "https://example.com/p/1", "original_image_url": "https://cdn.example.com/card1.jpg"},
+                      {"title": "سماعات بلوتوث", "body": "صوت نقي", "cta_text": "Shop now", "link_url": "https://example.com/p/2", "original_image_url": "https://cdn.example.com/card2.jpg"}
+                    ]
+                  }
+                }
+              ]
+            }
+          }
+        ],
+        "page_info": {"has_next_page": false}
+      }
+    }
+  },
+  "extensions": {"is_final": true}
+}
