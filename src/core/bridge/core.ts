@@ -1,6 +1,7 @@
-import {and, asc, desc, eq, gt} from 'drizzle-orm';
+import {and, asc, desc, eq} from 'drizzle-orm';
 import {existsSync, readFileSync} from 'node:fs';
 import {getDb, schema} from '../db/client';
+import {emitEvent, eventsAfter, lastEventId} from '../events';
 import type {FindingRow, StudyRow, StudyStatus} from '../db/schema';
 import {paths, resolveInside} from '../paths';
 import {MODULES, type ModuleId} from '../recipes';
@@ -21,20 +22,9 @@ export class BridgeError extends Error {
   }
 }
 
-const {studies, findings, events} = schema;
+const {studies, findings} = schema;
 
-export function emitEvent(studyId: number | null, type: string, payload: Record<string, unknown> = {}): void {
-  getDb().insert(events).values({studyId, type, payload, createdAt: new Date()}).run();
-}
-
-export function eventsAfter(lastId: number, limit = 200) {
-  return getDb().select().from(events).where(gt(events.id, lastId)).orderBy(asc(events.id)).limit(limit).all();
-}
-
-export function lastEventId(): number {
-  const row = getDb().select({id: events.id}).from(events).orderBy(desc(events.id)).limit(1).get();
-  return row?.id ?? 0;
-}
+export {emitEvent, eventsAfter, lastEventId};
 
 // ── Studies ──────────────────────────────────────────────────────────────────
 export function listStudies(): StudyRow[] {
