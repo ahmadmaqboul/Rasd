@@ -11,6 +11,8 @@ findings back. No API keys, nothing leaves your machine except the browsing itse
 Status: **Phase 1** (core platform) built; Phase 0's real-data spikes still need one run on the laptop.
 See [docs/PROGRESS.md](docs/PROGRESS.md).
 
+Running it on the laptop with a local Claude Code session, step by step: [docs/laptop.md](docs/laptop.md).
+
 ## Requirements
 
 - Node.js 22.13 or newer

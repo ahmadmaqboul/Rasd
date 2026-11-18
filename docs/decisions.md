@@ -271,6 +271,10 @@ So: Rasd *can* run on the free plan, but only as the API-based design above, aft
 Workers + D1 + R2 + Queues. That is a stack change and waits for the owner's go-ahead. If Instagram has to be
 read through a logged-in browser, it has to be local.
 
+**Decision (owner, 2026-11-18): stay local for now** — it is faster — and keep reading the platforms through a
+logged-in browser with a dedicated collection account. The Cloudflare/API route stays documented here for later.
+How to run it: [laptop.md](laptop.md).
+
 ## Open questions for the owner
 
 1. **Which OS is the laptop?** It affects installing ffmpeg and whisper.cpp (Phase 2/7) and how the session

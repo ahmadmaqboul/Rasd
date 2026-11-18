@@ -50,37 +50,14 @@ Details: [decisions.md → Spike results](decisions.md#spike-results).
 
 ## On the laptop: what to run
 
-```bash
-git clone https://github.com/ahmadmaqboul/Rasd.git rasd
-```
+Decision (2026-11-18): Rasd stays local, reading the platforms through a logged-in browser with a dedicated
+collection account. **Step-by-step, including a message to paste into a local Claude Code session:
+[laptop.md](laptop.md).**
 
-```bash
-cd rasd
-```
-
-```bash
-npm install
-```
-
-```bash
-npx playwright install chromium
-```
-
-```bash
-npm run dev
-```
-
-Then in <http://127.0.0.1:5173>: البزنس → أضف بزنس (سعد للاتصالات), and الإعدادات → حسابات الدخول →
-سجّل الدخول on Instagram with a dedicated account. That closes Phase 1. With the session saved, the Phase 0
-spikes can run:
-
-```bash
-npm run spike:adlibrary -- --keyword "شاحن" --max 20
-```
-
-```bash
-npm run spike:instagram -- <a public account> --study
-```
+In short: clone the repo, `npm install`, `npx playwright install chromium`, `npm run dev`, then in the app
+add سعد للاتصالات under البزنس and log in to Instagram under الإعدادات → حسابات الدخول. That closes Phase 1.
+Then run the two spikes (`npm run spike:adlibrary -- --keyword "شاحن" --max 20` and
+`npm run spike:instagram -- <a public account> --study`) and fix the parsers against what they read.
 
 ## Known gaps (by design, for later phases)
 
@@ -97,8 +74,20 @@ npm run spike:instagram -- <a public account> --study
 
 ## Next: Phase 2 — Collectors
 
-Not started. Per the working agreement, a short plan comes first. Best started after the laptop run above,
-because the Ad Library and Instagram parsers need real responses to be fixed against.
+Direction chosen by the owner: scraping through the local logged-in browser. **The plan below still needs the
+owner's OK before building.** Best done in a local session, right after the spikes, because the parsers need
+real responses.
+
+1. **Collection as jobs**: every collection runs as a job with live progress and cancel, respects the limits in
+   Settings (per run, per day, per hour), and reuses anything collected in the last 12 hours.
+2. **Meta Ad Library**: fix the parser from a real response; store ads, variant counts and start dates.
+3. **Instagram**: profile, posts from the last 30 days with their images, and a sample of comments — text only,
+   no commenter names.
+4. **Facebook pages, store websites** (name, price, discount, availability) and **competitor suggestions**.
+5. **«ابدأ الجمع»** on the study screen for account and ads studies (the full setup screen stays Phase 4).
+6. **Tests** on real responses saved from the first runs.
+
+Done when: collecting a real account for 30 days stores posts, media, comment samples and ads correctly.
 
 ## Open questions
 
