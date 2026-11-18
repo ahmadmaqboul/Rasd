@@ -79,9 +79,22 @@
       "type": "النوع",
       "status": "الحالة",
       "findings": "النتائج",
-      "updated": "آخر تحديث"
+      "updated": "آخر تحديث",
+      "profile": "البزنس"
     },
-    "tableLabel": "قائمة الدراسات"
+    "tableLabel": "قائمة الدراسات",
+    "search": "دوّر بالدراسات",
+    "filters": {
+      "type": "النوع",
+      "profile": "البزنس",
+      "all": "الكل",
+      "noProfile": "بدون بزنس"
+    },
+    "noMatch": {
+      "title": "ما في دراسات بتطابق البحث",
+      "action": "امسح البحث والفلاتر"
+    },
+    "count": "{{shown}} من {{total}}"
   },
   "setup": {
     "title": "إعداد: {{study}}",
