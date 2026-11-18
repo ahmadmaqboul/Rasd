@@ -25,6 +25,7 @@ import {PageFrame} from '../components/PageFrame';
 import {StatusLabel} from '../components/StatusLabel';
 import {useEventStream, useResource, type EvidenceItem, type Finding, type StudyDetail} from '../lib/api';
 import {formatNumber} from '../lib/locale';
+import {isolateNumberRuns} from '../lib/bidi';
 import {useStudyText} from '../lib/studyText';
 
 const CONFIDENCE_COLOR = {low: 'gray', medium: 'yellow', high: 'green'} as const;
@@ -107,7 +108,7 @@ function FindingCard({finding, evidence}: {finding: Finding; evidence: Record<st
       <VStack gap={3}>
         <HStack gap={3} vAlign="start">
           <StackItem size="fill">
-            <Heading level={3}>{finding.title}</Heading>
+            <Heading level={3}>{isolateNumberRuns(finding.title)}</Heading>
           </StackItem>
           <Token
             size="sm"
@@ -115,14 +116,14 @@ function FindingCard({finding, evidence}: {finding: Finding; evidence: Record<st
             label={`${t('common:confidence.label')}: ${t(`common:confidence.${finding.confidence}`)}`}
           />
         </HStack>
-        <Text as="p">{finding.claim}</Text>
+        <Text as="p">{isolateNumberRuns(finding.claim)}</Text>
         {finding.why ? (
           <VStack gap={1}>
             <Text type="label" color="secondary">
               {t('studies:view.why')}
             </Text>
             <Text as="p" color="secondary">
-              {finding.why}
+              {isolateNumberRuns(finding.why)}
             </Text>
           </VStack>
         ) : null}
