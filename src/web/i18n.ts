@@ -1,16 +1,22 @@
 import i18n from 'i18next';
 import {initReactI18next} from 'react-i18next';
+import arBusiness from '../../locales/ar/business.json';
 import arCommon from '../../locales/ar/common.json';
 import arDev from '../../locales/ar/dev.json';
 import arHome from '../../locales/ar/home.json';
+import arJobs from '../../locales/ar/jobs.json';
 import arNav from '../../locales/ar/nav.json';
 import arSections from '../../locales/ar/sections.json';
+import arSettings from '../../locales/ar/settings.json';
 import arStudies from '../../locales/ar/studies.json';
+import enBusiness from '../../locales/en/business.json';
 import enCommon from '../../locales/en/common.json';
 import enDev from '../../locales/en/dev.json';
 import enHome from '../../locales/en/home.json';
+import enJobs from '../../locales/en/jobs.json';
 import enNav from '../../locales/en/nav.json';
 import enSections from '../../locales/en/sections.json';
+import enSettings from '../../locales/en/settings.json';
 import enStudies from '../../locales/en/studies.json';
 
 /**
@@ -29,6 +35,9 @@ const ar = {
   studies: arStudies,
   sections: arSections,
   dev: arDev,
+  business: arBusiness,
+  settings: arSettings,
+  jobs: arJobs,
 } as const;
 
 export const resources = {
@@ -40,6 +49,9 @@ export const resources = {
     studies: enStudies,
     sections: enSections,
     dev: enDev,
+    business: enBusiness,
+    settings: enSettings,
+    jobs: enJobs,
   },
 } as const;
 

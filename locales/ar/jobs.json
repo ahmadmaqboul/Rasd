@@ -1,0 +1,40 @@
+{
+  "types": {
+    "session": {
+      "login": "تسجيل الدخول إلى {{platform}}",
+      "check": "فحص جلسة {{platform}}"
+    },
+    "unknown": "مهمة"
+  },
+  "status": {
+    "queued": "بالانتظار",
+    "running": "شغّالة",
+    "succeeded": "خلصت",
+    "failed": "فشلت",
+    "cancelled": "انلغت"
+  },
+  "steps": {
+    "opening_browser": "عم نفتح نافذة المتصفح…",
+    "waiting_for_login": "سجّل الدخول بالنافذة الي انفتحت. رَصد بيستنّاك.",
+    "waiting_for_check": "المنصة طلبت تحقق. كمّله بنفسك بالنافذة، ورَصد بيستنّاك.",
+    "saving_session": "عم نحفظ الجلسة…",
+    "reading_session": "عم نقرأ الجلسة المحفوظة…",
+    "opening_platform": "عم نفتح المنصة للتأكد…"
+  },
+  "results": {
+    "valid": "الجلسة شغّالة.",
+    "missing": "ما في جلسة محفوظة.",
+    "expired": "الجلسة انتهت.",
+    "challenged": "المنصة طالبة تحقق.",
+    "unknown": "الجلسة محفوظة، بس ما قدرنا نتأكد منها."
+  },
+  "progress": "{{done}} من {{total}}",
+  "elapsed": "صارلها {{time}}",
+  "remaining": "باقي تقريباً {{time}}",
+  "cancel": "ألغِ",
+  "cancelling": "عم نلغي…",
+  "time": {
+    "seconds": "{{count}} ثانية",
+    "minutes": "{{count}} دقيقة"
+  }
+}

@@ -24,6 +24,8 @@ import {
 } from '@heroicons/react/24/solid';
 import {useTranslation} from 'react-i18next';
 import {Route, Routes, useLocation} from 'react-router';
+import {BusinessFormPage} from './pages/BusinessFormPage';
+import {BusinessListPage} from './pages/BusinessListPage';
 import {HomePage} from './pages/HomePage';
 import {LibraryPage} from './pages/LibraryPage';
 import {NotFoundPage} from './pages/NotFoundPage';
@@ -136,7 +138,9 @@ export function App() {
         <Route path="/studies/:id" element={<StudyViewPage />} />
         <Route path="/monitors" element={<PlaceholderPage section="monitors" phase={6} icon={BellAlertIcon} />} />
         <Route path="/templates" element={<PlaceholderPage section="templates" phase={4} icon={BookmarkSquareIcon} />} />
-        <Route path="/business" element={<PlaceholderPage section="business" phase={1} icon={BuildingStorefrontIcon} />} />
+        <Route path="/business" element={<BusinessListPage />} />
+        <Route path="/business/new" element={<BusinessFormPage />} />
+        <Route path="/business/:id" element={<BusinessFormPage key="edit" />} />
         <Route path="/settings" element={<SettingsPage />} />
         <Route path="/dev/rtl" element={<RtlCheckPage />} />
         <Route path="*" element={<NotFoundPage />} />

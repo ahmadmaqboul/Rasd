@@ -6,7 +6,7 @@ import {useTranslation} from 'react-i18next';
 import {PageFrame} from '../components/PageFrame';
 
 interface PlaceholderPageProps {
-  section: 'monitors' | 'templates' | 'business';
+  section: 'monitors' | 'templates';
   /** The phase in which this section gets built — shown honestly instead of a fake UI. */
   phase: number;
   icon: IconType;

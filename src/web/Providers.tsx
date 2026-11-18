@@ -7,7 +7,8 @@ import {useTranslation} from 'react-i18next';
 import {Link as RouterLink} from 'react-router';
 import {defaultThemeSlug, themes} from '../astryx-themes';
 import {SUPPORTED_LANGUAGES, type Language} from './i18n';
-import {DEFAULT_REGIONAL, formatLocale, textDirection} from './lib/locale';
+import {fetchJson, useEventStream, type Settings} from './lib/api';
+import {DEFAULT_REGIONAL, formatLocale, setRegional, textDirection, type RegionalSettings} from './lib/locale';
 
 export type ColorMode = 'system' | 'light' | 'dark';
 const COLOR_MODE_KEY = 'rasd.colorMode';
@@ -20,8 +21,35 @@ const ColorModeContext = createContext<{mode: ColorMode; setMode: (mode: ColorMo
 export const useColorMode = () => useContext(ColorModeContext);
 
 function readColorMode(): ColorMode {
-  const saved = localStorage.getItem(COLOR_MODE_KEY);
-  return saved === 'light' || saved === 'dark' ? saved : 'system';
+  try {
+    const saved = localStorage.getItem(COLOR_MODE_KEY);
+    return saved === 'light' || saved === 'dark' ? saved : 'system';
+  } catch {
+    return 'system'; // storage can be unavailable (private windows, sandboxed frames)
+  }
+}
+
+/** Digits and currency from Settings; every formatter in lib/locale follows them. */
+function useRegionalSettings(language: Language): RegionalSettings {
+  const [locale, setLocale] = useState<Settings['locale'] | undefined>();
+  const load = useMemo(
+    () => () => {
+      fetchJson<Settings>('/api/settings')
+        .then(settings => setLocale(settings.locale))
+        .catch(() => undefined); // the server is not up yet: keep the defaults
+    },
+    [],
+  );
+  useEffect(load, [load]);
+  useEventStream(event => {
+    if (event.type === 'settings.updated') load();
+  });
+  const regional = useMemo<RegionalSettings>(
+    () => ({...DEFAULT_REGIONAL, language, ...(locale ? {digits: locale.digits, currency: locale.currency} : {})}),
+    [language, locale],
+  );
+  setRegional(regional);
+  return regional;
 }
 
 /** Astryx links (SideNavItem, Button href, ClickableCard…) go through react-router with no page reload. */
@@ -47,22 +75,30 @@ export function Providers({children}: {children: ReactNode}) {
     () => ({
       mode,
       setMode: (next: ColorMode) => {
-        localStorage.setItem(COLOR_MODE_KEY, next);
+        try {
+          localStorage.setItem(COLOR_MODE_KEY, next);
+        } catch {
+          // not saved, but still applied for this visit
+        }
         setModeState(next);
       },
     }),
     [mode],
   );
 
+  const regional = useRegionalSettings(language);
   const theme = themes[defaultThemeSlug as keyof typeof themes];
-  // Western digits by default inside Astryx components too (calendar, pagination…).
-  const astryxLocale = formatLocale({...DEFAULT_REGIONAL, language});
+  // The chosen digits inside Astryx components too (calendar, pagination…).
+  const astryxLocale = formatLocale(regional);
 
   return (
     <ColorModeContext.Provider value={colorMode}>
       <Theme theme={theme} mode={mode}>
         <InternationalizationProvider locale={astryxLocale} dir={dir} messages={{ar: arSA}}>
-          <LinkProvider component={AppLink}>{children}</LinkProvider>
+          {/* Remounting on a digits or currency change re-formats every number on screen at once. */}
+          <LinkProvider key={`${regional.digits}-${regional.currency}`} component={AppLink}>
+            {children}
+          </LinkProvider>
         </InternationalizationProvider>
       </Theme>
     </ColorModeContext.Provider>
