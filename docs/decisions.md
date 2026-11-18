@@ -250,6 +250,26 @@ The owner asked for Rasd to run fully remote, with nothing installed on the lapt
 
 Options put to the owner: (1) private server + official API + public Ad Library (recommended);
 (2) private server + logged-in browser (not recommended: blocks and account bans); (3) decide later.
+The owner chose (3) for now, and asked to look at **Cloudflare's free plan**, since the business already uses
+Cloudflare; local stays the fallback.
+
+### Cloudflare free plan: what fits (checked 2026-11-18, figures from Cloudflare's pricing pages)
+
+| Rasd part | On Cloudflare free | Note |
+|---|---|---|
+| The web app (React build) | Static assets on Workers/Pages | No change to the UI code |
+| Login to the app | Cloudflare Access in front of it | So only the owner can open it |
+| API server | **Workers**, 100,000 requests/day | Fastify does not run there: the routes move to a Workers router |
+| Database | **D1** (SQLite), 5 GB, 5M rows read and 100k written per day | Drizzle supports D1, but D1 is asynchronous and has no interactive transactions: every core function becomes `async`, the two transactions become batches |
+| Images and packages | **R2** object storage | `sharp` does not run in Workers; resizing needs a WebAssembly library |
+| Background jobs | **Queues** (10,000 operations/day) or Durable Objects | Replaces the in-process worker |
+| A real browser | **Browser Run** (was Browser Rendering): **10 minutes of browser time per day**, 3 at once | Enough for a few Ad Library searches a day, not for scrolling Instagram. Whether Meta serves the Ad Library to Cloudflare's IPs must be tested |
+| Long-running Node server, Playwright as we use it today | **Containers** — not on the free plan (Workers Paid, 5 USD/month) | — |
+| Instagram | Official API (Business Discovery) called from a Worker | A logged-in browser from Cloudflare's IPs has the same blocking problem as any server |
+
+So: Rasd *can* run on the free plan, but only as the API-based design above, after porting the server to
+Workers + D1 + R2 + Queues. That is a stack change and waits for the owner's go-ahead. If Instagram has to be
+read through a logged-in browser, it has to be local.
 
 ## Open questions for the owner
 
