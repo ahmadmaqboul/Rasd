@@ -225,6 +225,32 @@ Unicode isolate marks. Measured: the `2` now sits left of the `1`. Rule added to
 - In this container a login attempt fails, as intended, with "ما بقدر أفتح نافذة متصفح على هذا الجهاز…",
   because there is no screen.
 
+## Running Rasd with nothing on the laptop (owner's request, 2026-11-18) — decision pending
+
+The owner asked for Rasd to run fully remote, with nothing installed on the laptop. That changes principle
+"Local and private" and the Phase 2 collectors, so it waits for the owner's choice. What we found:
+
+- **A logged-in browser on a server does not work for Instagram.** Instagram flags data-center IP ranges and
+  answers logins from them with security checks or bans; the usual "fix" sold for this is residential or mobile
+  proxies, i.e. disguising the traffic. That is getting around a platform's protection, which Rasd never does.
+- **Meta's official API covers most of what we need for Instagram, from any server.** *Business Discovery*
+  lets a professional (business or creator) Instagram account read another public professional account:
+  follower and media counts and its media list with captions, like and comment counts and dates. It needs
+  Saed Tel's Instagram to be a professional account linked to a Facebook Page, and a Meta developer app.
+  Limits: personal accounts cannot be read; comment *text* of other accounts is not included; media
+  downloads follow the owner's settings; rate limit 1,000 queries per hour. Permissions must be checked
+  against the current API version before building.
+- **Ads**: the Ad Library API still excludes commercial ads outside the EU, so ads would come from the public
+  Ad Library web page, opened by a headless browser on the server *without logging in*. Whether Meta serves
+  that page to a data-center IP has to be tested.
+- **Hosting**: a small always-on server with a disk (about 5–7 USD a month), the app behind a password and
+  HTTPS, opened from any browser. Analysis stays in a Claude session (like this one), which talks to the
+  server's API through the `rasd` bridge with a token. This is a new paid service, so it needs the owner's
+  go-ahead.
+
+Options put to the owner: (1) private server + official API + public Ad Library (recommended);
+(2) private server + logged-in browser (not recommended: blocks and account bans); (3) decide later.
+
 ## Open questions for the owner
 
 1. **Which OS is the laptop?** It affects installing ffmpeg and whisper.cpp (Phase 2/7) and how the session
