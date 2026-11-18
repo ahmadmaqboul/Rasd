@@ -14,6 +14,7 @@ import {
 import {closeDb} from '../core/db/client';
 import {STUDY_STATUSES, type StudyStatus} from '../core/db/schema';
 import {paths} from '../core/paths';
+import {recordBridgeActivity} from '../core/settings';
 
 /**
  * `rasd` — the Claude session's bridge to Rasd (§6.0.2).
@@ -43,6 +44,16 @@ function readJson(file: string): unknown {
 }
 
 const program = new Command('rasd').description('جسر التحليل بين جلسة Claude وتطبيق رَصد').showHelpAfterError();
+
+// Lets Settings show when a Claude session last used the bridge. Never blocks the command itself.
+program.hook('preAction', (_root, action) => {
+  try {
+    const parent = action.parent && action.parent !== program ? `${action.parent.name()} ` : '';
+    recordBridgeActivity(`${parent}${action.name()}`);
+  } catch {
+    // the database is busy: the command still runs
+  }
+});
 
 const study = program.command('study').description('قراءة الدراسات وحزمها وضبط حالتها');
 
