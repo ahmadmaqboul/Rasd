@@ -114,6 +114,23 @@ Astryx layout props are logical already (`hAlign="start|end"`, `paddingInlineSta
 `placement="start|end"`). **Rule:** no `left` / `right` in app code, and no physical CSS. This is also what
 makes the English locale work later without a second pass.
 
+### 6. Number expressions inside Arabic text
+
+`عرض «2+1»` rendered as `عرض «1+2»`. In an Arabic paragraph, digits are treated as Arabic numbers and a `+`
+or `-` between two of them does not stay between them. **Fix (in repo):** `isolateNumberRuns()` in
+`src/web/lib/bidi.ts` wraps expressions such as `2+1`, `10-15`, `530 + 88` in isolate marks. Plain numbers,
+percentages and decimals are left alone.
+
+**Rule:** any text that comes from a platform or from a Claude session (finding titles, claims, captions, ad
+copy) goes through `isolateNumberRuns()` before it is shown.
+
+### Phase 1 screens
+
+Business list and form, Settings (sessions, limits, digits and currency, bridge status, recent jobs) and the
+library filters were checked at 1280 and 390 px: no horizontal overflow, remove buttons at the end of each row,
+URL and handle fields use `dir="auto"` (Arabic placeholder, Latin value), handles and paths go through `Ltr`.
+Switching digits to ٠١٢٣ in Settings changes every number on screen, including dates in the library.
+
 ## Not verified yet
 
 | Item | Why | When |

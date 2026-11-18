@@ -1,6 +1,7 @@
-# Decisions and findings — Phase 0
+# Decisions and findings
 
-Date: 2026-11-15. Each entry says what was chosen, why, and what would make us revisit it.
+Phase 0: 2026-11-15. Phase 1: 2026-11-18. Each entry says what was chosen, why, and what would make us revisit it.
+Phase 1 decisions are in [their own section](#phase-1-core-platform).
 
 ## Read this first: where Phase 0 was built
 
@@ -29,12 +30,13 @@ Neither is a design problem — Rasd is local-first and is meant to run on the l
 | Running TypeScript | **tsx** for the server and CLI, no build step | One less thing to go wrong on the owner's machine; `node bin/rasd.mjs` works on macOS, Linux and Windows. | Startup time of the CLI (~0.6 s) becomes a problem |
 | Storage | **SQLite** (`better-sqlite3` 13, WAL mode) + **Drizzle** 0.45, migrations in `drizzle/` applied on startup | WAL lets the server, the CLI and (later) the MCP server and workers write to the same file safely. | — |
 | Live updates | An append-only **`events` table** that the server tails (every 600 ms) and streams over **SSE** | The CLI runs in a different process from the server (it is launched by the Claude session). Writing events to SQLite means no socket, port or lock between processes, and events survive a server restart. Measured CLI → UI: **1.1–1.4 s**, of which ~0.6 s is CLI startup. | We need sub-second progress → the CLI can also POST to the server when it is up |
-| Job queue | Not built yet. Phase 1 will use the same pattern (a `jobs` table + the `events` table) | Same reasons; no Redis. | — |
+| Job queue | A **`jobs` table** worked by a worker inside the server process; every change is written to the `events` table, so progress reaches the UI over the same SSE stream (Phase 1, details below) | Same reasons as live updates; no Redis, no second process to keep alive. | We need jobs to survive the app being closed mid-run (today they are marked interrupted and must be restarted) |
 | i18n | **i18next 27** + react-i18next, typed keys (`CustomTypeOptions`), Arabic is the source, `locales/en` scaffolded and empty | Typed keys turn a missing or misspelled key into a compile error. A test fails if a study type, module or status has no Arabic label. | — |
 | Collection | **Playwright 1.63** (pinned), one persistent browser profile per platform under `data/sessions/` | Persistent profile = the manual login survives restarts. | — |
 | Reading pages | **Read the JSON the site loads for its own page**, DOM as fallback | Class names and markup change weekly; the data payloads change less often and carry exact numbers. We make no extra requests — only what the page itself loads. | A site moves fully to server-rendered HTML |
 | Validation | **zod 4** for everything that crosses the bridge | One schema gives the type, the validation and the error message. | — |
-| Tests | **Vitest 5**; 58 tests | — | — |
+| Tests | **Vitest 5**; 109 tests after Phase 1. The session tests drive a real browser (headed, under Xvfb when there is no screen) against a local fake platform; they are skipped where Chromium is not installed, e.g. in CI | — | — |
+| CI | **GitHub Actions**: `npm ci`, type-check, tests, build on every push to `main` | Catches a broken install or build before it reaches the laptop. | — |
 
 ### Things that are newer than usual and worth knowing
 
@@ -149,17 +151,88 @@ npm run spike:instagram -- <a public account> --study
 
 The last command also builds a study from the real posts, so `/rasd-analyze <id>` can be repeated on real data.
 
+## Phase 1: core platform
+
+### Data model (§11)
+
+- **Additive migration** (`drizzle/0001_phase1_core.sql`), not a regenerated one as first proposed. It keeps the
+  demo studies and their findings and costs nothing. drizzle-kit drops `ON DELETE` actions when it *adds* a
+  foreign-key column in SQLite, so the two `ALTER TABLE studies ADD …` lines were edited by hand to say
+  `ON DELETE set null`; checked on a copy of the real database (deleting a profile unlinks its studies).
+- **Tracked entities are shared.** An account (`platform` + normalized handle) exists once; `profile_entities`
+  says which profile tracks it and as what (`own` / `competitor` / `seller`). Posts and ads hang off the entity,
+  so data collected for one profile is not collected again for another. Removing an account from a profile
+  keeps the entity and its data.
+- **Study vs. StudyRun.** A study is the question and its parameters; a run is one attempt at collecting and
+  packaging it (a failed run, then a retry). Findings stay on the study. Re-running a *template* later makes a
+  new study, so "compare with last time" compares two studies from the same template.
+- **Privacy by schema (§5.4).** `comment_samples` has no column for an author — not even a hash. Duplicate
+  comments are caught by a hash of the text.
+- **Money** is stored as REAL next to its currency. Fine for display and scoring; revisit if Rasd ever sums
+  money for accounting.
+
+### Jobs
+
+- One worker inside the server. Jobs carry a **lane**; two jobs in the same lane never run at the same time.
+  Browser jobs use the platform as their lane, because a Chromium profile can only be opened once.
+- **Cancel** works through an `AbortSignal`: a queued job is cancelled at once; a running one is checked every
+  second and its handler stops (and closes its browser window) at the next step or sleep.
+- A job left running when the app was closed is marked **interrupted** at the next start, with an Arabic
+  message, so nothing shows "running" forever.
+- Errors: a handler throws `JobError(arabicMessage, code)` for things the user can act on (`no_display`,
+  `profile_busy`, `browser_missing`, `window_closed`, `timeout`); anything else is logged and shown as a
+  generic Arabic message, never a stack trace.
+
+### Platform sessions (§5.1)
+
+- **Login** opens a visible Chromium window on the platform's login page and only *waits*: it polls the
+  browser's cookies every 2 s until the login cookie appears (`sessionid` on Instagram; `c_user` + `xs` on
+  Facebook), for up to 15 minutes. It never types, clicks or fills anything. If the platform shows a security
+  check, the step changes to "كمّله بنفسك بالنافذة" and Rasd keeps waiting.
+- **Health check** reads the saved cookies with a hidden browser, then opens the platform's home page **once**
+  and classifies it: logged in → `valid`; redirected to a login page or shown a password field → `expired`;
+  a checkpoint/challenge URL or a captcha → `challenged`; unreachable → `unknown` with the network message.
+  An offline check (cookies only) is available and gives `unknown`.
+- Rasd does **not** read which account is logged in. The user can give the session a nickname ("حساب الجمع").
+- **Disconnect** deletes the profile folder; refused while any job uses that platform.
+- The Ad Library needs no login, so it has no session of its own.
+- **Encryption at rest** is unchanged: we rely on Chromium's own cookie encryption (OS keychain on macOS and
+  Windows; on Linux it depends on the desktop keyring). Still open question 2 below.
+
+### Settings and the bridge status
+
+- Settings are stored per section (`collection`, `locale`) and validated with zod; a missing or corrupt stored
+  section falls back to the defaults, so a bad value cannot stop the app. Defaults are conservative: 60 items per
+  source per run, 600 per platform per day, 150 requests per hour, 1.8–4.2 s between steps, reuse anything
+  collected in the last 12 hours. **Phase 2 collectors enforce them**; Phase 1 only stores them.
+- **Digits and currency** drive every formatter in the UI. Changing them remounts the page under the providers,
+  so every number on screen changes at once.
+- **Bridge status**: the `rasd` CLI records its last command and time on every run; Settings shows it, plus
+  whether `/rasd-analyze` and how many playbooks are in the repo. The MCP server is Phase 3, shown as such.
+
+### Arabic text with number expressions
+
+`«2+1»` inside an Arabic sentence rendered as `«1+2»`: in an Arabic paragraph the digits become *Arabic
+numbers*, and a `+` or `-` between two of them is not kept between them. Findings now pass through
+`isolateNumberRuns()` (`src/web/lib/bidi.ts`), which wraps expressions like `2+1`, `10-15`, `530 + 88` in
+Unicode isolate marks. Measured: the `2` now sits left of the `1`. Rule added to [rtl.md](rtl.md).
+
+### What could not be verified here
+
+- A **real** Instagram or Facebook login and health check: this container may not open those sites, and the
+  login needs a person. The same code was run end to end with a real browser against a local fake platform
+  (login, a security-check pause, cancel, and valid / expired / challenged checks).
+- In this container a login attempt fails, as intended, with "ما بقدر أفتح نافذة متصفح على هذا الجهاز…",
+  because there is no screen.
+
 ## Open questions for the owner
 
 1. **Which OS is the laptop?** It affects installing ffmpeg and whisper.cpp (Phase 2/7) and how the session
    profile is protected at rest.
 2. **Session encryption at rest (§5.1).** A Playwright persistent profile is a Chromium profile folder.
-   Chromium already encrypts cookies with the OS keychain on macOS and Windows. Proposal for Phase 1: rely on
-   that, keep `data/` out of cloud-synced folders, and document it — rather than adding our own encryption
-   layer and key management. Agree?
-3. **Schema.** Phase 0 has three tables (`studies`, `findings`, `events`). Phase 1 replaces this with the full
-   model in §11, including the `Study` / `StudyRun` split. There is no data worth migrating, so Phase 1 will
-   regenerate the migration from scratch.
+   Chromium already encrypts cookies with the OS keychain on macOS and Windows. Phase 1 relies on that and
+   adds no encryption of its own. Keep `data/` out of cloud-synced folders. Say if you want more.
+3. ~~**Schema.**~~ Done in Phase 1, as an additive migration (see above).
 4. **Charts** — see above.
 5. **Playbook language.** The `/rasd-analyze` command and the playbooks are written in **Arabic**, because
    they define Arabic output and you are the one who tunes them. Code comments and developer docs are English.

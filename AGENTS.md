@@ -22,7 +22,11 @@ back. The full spec is the build prompt; current state is in `docs/PROGRESS.md`,
 - **No hard-coded UI text.** Every string lives in `locales/ar/*.json` (Arabic is the source; keys are type-checked).
   Short, natural Arabic in the UI; Modern Standard Arabic in reports.
 - **RTL** (see `docs/rtl.md`): arrows and chevrons go through `DirectionalIcon`; URLs, handles, commands and IDs
-  go through `Ltr`; no `left` / `right` anywhere — use `start` / `end`.
+  go through `Ltr`; text from platforms or a Claude session goes through `isolateNumberRuns()`; no `left` /
+  `right` anywhere — use `start` / `end`.
+- **Background work is a job** (`src/core/jobs`): give it a lane (the platform, for anything that opens a
+  browser), report progress with i18n step keys (`locales/ar/jobs.json`), respect `ctx.signal`, and throw
+  `JobError` with an Arabic message for anything the user can act on.
 - **One primary action per screen.** Extra options go behind a collapsed "خيارات متقدمة".
 - **Collection is polite and never forces its way in.** Human-like pacing; on a login wall, security check or
   captcha: stop and tell the user (`CollectorBlocked`). Never automate around one.

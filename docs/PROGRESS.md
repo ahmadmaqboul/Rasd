@@ -1,68 +1,106 @@
 # Progress
 
-Last updated: 2026-11-15 — end of the Phase 0 session in the cloud build environment.
+Last updated: 2026-11-18, end of the Phase 1 session in the cloud build environment.
+Code: <https://github.com/ahmadmaqboul/Rasd> (`main`). CI runs type-check, tests and build on every push.
 
-## Phase 0 — Foundations and spikes
+## Phase 1: Core platform
 
-**Status: built, not closed. One spike works; one failed its first real run; one has not been run.**
-The exit criterion is "the app opens in Arabic with the correct font and theme, and all three spikes work with
-real data". The first half is met. The second half is met for the bridge only, and only on demo data.
-Why, and exactly what to run: [decisions.md → Spike results](decisions.md#spike-results).
+**Status: built and tested here. One step of the exit criterion needs the laptop.**
+The exit criterion is "the user creates the سعد للاتصالات profile, connects an Instagram session, and sees
+session health". Creating the profile works in the app. Connecting a session needs a person to log in on a
+machine with a screen, and this container may not open Instagram. So the login and the health check were
+proven with a real browser against a local fake platform, not against Instagram.
 
 ### Done
 
-- [x] Repo scaffold: React 19 + Vite 8 + Astryx 0.7.16 + Fastify 5 + SQLite/Drizzle, TypeScript throughout
-- [x] `astryx init --all` run; its agent rules (`AGENTS.md`) are followed
-- [x] Black-and-white theme (light + dark), muted semantic colors, built with the Astryx theme editor
-- [x] IBM Plex Sans Arabic, self-hosted, weights 300–700
-- [x] `<html lang="ar" dir="rtl">`, Western digits by default
-- [x] i18n: every UI string in `locales/ar/*.json`, typed keys, `locales/en` scaffolded
-- [x] App shell with the six navigation items; mobile nav works
-- [x] Home: the one question, paste/search box that suggests a study type, ten study-type cards from declarative recipes
-- [x] Library and study view (status, copy-the-command button, live findings with evidence thumbnails)
-- [x] RTL verification with screenshots and measurements → [rtl.md](rtl.md)
-- [x] Bridge core + `rasd` CLI (`study list|show|data|status`, `finding add|list`) with validation
-- [x] Analysis package builder (brief, chunked data, resized images, evidence index)
-- [x] `/rasd-analyze` command + playbooks for `top_content` and `visual_style`
-- [x] **Spike 3 (bridge round trip): works end to end**, on labelled demo data
-- [x] Instagram collector + spike script, with login-wall / challenge / blocked-network handling
-- [x] Meta Ad Library collector + spike script (**does not read real data yet** — see Not done)
-- [x] 58 tests (parsers, bridge rules, study suggestions, recipes, locale completeness)
-- [x] [decisions.md](decisions.md)
+- [x] Full data model from §11 as an additive migration: business profiles and products, tracked entities
+      (shared between profiles; roles own / competitor / seller), snapshots, posts, media, comment samples
+      (text only, no author at all), ads and variants, market products, listings and price points, study runs,
+      reports, templates, monitors and alerts, platform sessions, request usage, settings, jobs
+- [x] Job queue and worker: lanes (one browser job per platform at a time), live progress over SSE, cancel,
+      jobs left running by a closed app are marked interrupted
+- [x] Sessions manager: login in a visible window that only waits (and waits through security checks), health
+      check (valid / expired / challenged / unknown / missing), nickname, disconnect, dedicated-account warning,
+      clear Arabic errors (no screen, profile in use, browser not installed, window closed, timeout)
+- [x] Business profiles: list, create, edit, delete. Name required; accounts, products and prices on the page;
+      category, region, currency, audience notes, costs and competitors under خيارات متقدمة. Field errors
+      land on the right row
+- [x] Settings: sessions, collection limits (under خيارات متقدمة), digits (0123 / ٠١٢٣) and currency, bridge
+      status (last `rasd` CLI use, command and playbooks installed, MCP marked Phase 3), recent jobs, appearance
+- [x] Library: Arabic-aware search, filters by type and business profile
+- [x] Fixed «2+1» showing as «1+2» inside Arabic findings
+- [x] 109 tests (jobs, sessions with a real browser, business, settings, API routes, bidi, plus Phase 0's)
+- [x] GitHub repository and CI
 
-### Not done
+### Not done in Phase 1
 
-- [ ] **Spike 2 (Ad Library): fix it.** One real run loaded the page and read 0 ads; cause unknown. The spike
-      now saves a screenshot, the HTML and response counts on an empty run — run it once, read those, fix the
-      parser. Details in [decisions.md](decisions.md#spike-results).
-- [ ] **Spike 1 (Instagram) against the real site** — never run. Needs a manual login in a visible browser,
-      so it has to happen on the laptop.
-- [ ] Replace the hand-built parser fixtures with captured responses (a successful run saves them automatically)
+- [ ] **Log in to a real Instagram session from Settings and see «شغّالة»** — on the laptop (steps below)
+- [ ] Collection limits are stored but not enforced yet; the Phase 2 collectors will read them
+- [ ] The study setup screen still cannot start a collection (Phase 2 wires collection to jobs; Phase 4 the setup)
+
+## Phase 0: Foundations and spikes
+
+**Status: built, not closed.** The bridge spike works on demo data. The Ad Library spike read 0 ads on its one
+real run (cause unknown). The Instagram spike has never run against the real site. Both need the laptop.
+Details: [decisions.md → Spike results](decisions.md#spike-results).
+
+- [ ] Spike 2 (Ad Library): run once on the laptop, read the saved screenshot/HTML/diagnostics, fix the parser
+- [ ] Spike 1 (Instagram) against the real site
+- [ ] Replace the hand-built parser fixtures with captured responses (a successful run saves them)
+
+## On the laptop: what to run
+
+```bash
+git clone https://github.com/ahmadmaqboul/Rasd.git rasd
+```
+
+```bash
+cd rasd
+```
+
+```bash
+npm install
+```
+
+```bash
+npx playwright install chromium
+```
+
+```bash
+npm run dev
+```
+
+Then in <http://127.0.0.1:5173>: البزنس → أضف بزنس (سعد للاتصالات), and الإعدادات → حسابات الدخول →
+سجّل الدخول on Instagram with a dedicated account. That closes Phase 1. With the session saved, the Phase 0
+spikes can run:
+
+```bash
+npm run spike:adlibrary -- --keyword "شاحن" --max 20
+```
+
+```bash
+npm run spike:instagram -- <a public account> --study
+```
 
 ## Known gaps (by design, for later phases)
 
 | Gap | Phase |
 |---|---|
-| The study setup screen only previews the recipe; nothing can be started from the UI | 4 (collection wiring: 2) |
-| Business, Templates and Monitors pages are empty states that say so | 1 / 4 / 6 |
-| Settings has appearance only; no session manager, limits, or bridge status | 1 |
-| Schema is three tables; no business profiles, posts, ads, snapshots | 1 |
-| No job queue or collection progress UI | 1 |
-| No media download for video, no keyframes or contact sheets, no transcription | 2 / 7 |
-| No comment sampling, no Facebook pages, web stores or discovery collectors | 2 |
+| Collectors do not run as jobs yet, do not use the limits, no comment sampling, no Facebook pages, web stores or discovery | 2 |
 | No MCP server; `/rasd-ask`, `/rasd-compare` and twelve of the fourteen playbooks are missing | 3 |
-| Findings are shown as a flat list; no report structure, mood board, matrix, scoring, PDF | 5 |
-| No library search or filters | 1 |
-| Session profile is not encrypted by Rasd itself (see decisions.md, open question 2) | 1 |
+| The study setup screen only previews the recipe; templates page is empty | 4 |
+| Findings are a flat list; no report structure, mood board, matrix, scoring, PDF | 5 |
+| Monitors page is empty | 6 |
+| No media download for video, keyframes, contact sheets or transcription | 2 / 7 |
+| Session profile relies on Chromium's own encryption (decisions.md, open question 2) | — |
 | Only Chromium was tested | 8 |
 
-## Next: Phase 1 — Core platform
+## Next: Phase 2 — Collectors
 
-Not started. Per the working agreement, a short plan will be posted for approval first. It will cover: the
-full schema (§11), Business Profiles CRUD, the Settings sessions manager with headed login and session health,
-collection limits, bridge status, and the job queue with SSE progress.
+Not started. Per the working agreement, a short plan comes first. Best started after the laptop run above,
+because the Ad Library and Instagram parsers need real responses to be fixed against.
 
 ## Open questions
 
 See [decisions.md → Open questions for the owner](decisions.md#open-questions-for-the-owner): laptop OS,
-session encryption approach, schema reset, chart library, playbook language.
+session encryption, chart library, playbook language.

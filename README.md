@@ -8,7 +8,8 @@ reports with evidence behind every finding.
 session (Claude Code in this repo) that reads the collected data through the `rasd` CLI and writes its
 findings back. No API keys, nothing leaves your machine except the browsing itself.
 
-Status: **Phase 0** (foundations and spikes). See [docs/PROGRESS.md](docs/PROGRESS.md).
+Status: **Phase 1** (core platform) built; Phase 0's real-data spikes still need one run on the laptop.
+See [docs/PROGRESS.md](docs/PROGRESS.md).
 
 ## Requirements
 
@@ -31,6 +32,14 @@ npm run dev
 
 Open <http://127.0.0.1:5173>. The API server listens on `127.0.0.1:4310`; both are reachable from this
 machine only. All data lives in `./data` (ignored by git). Set `RASD_DATA_DIR` to move it.
+
+## First steps in the app
+
+1. **البزنس → أضف بزنس**: create the profile (only the name is required; accounts, products and prices help).
+2. **الإعدادات → حسابات الدخول → سجّل الدخول**: a browser window opens on Instagram's login page. Log in by
+   hand with a **dedicated** account (not the business's main one). If Instagram asks for a security check,
+   complete it in that window; Rasd waits and never fills anything in. The card then shows the session as
+   «شغّالة», and «افحص الجلسة» checks it again later.
 
 ## Try the bridge (no platform access needed)
 
@@ -64,7 +73,8 @@ npm run spike:instagram -- --login
 npm run spike:instagram -- <account> --study
 ```
 
-`--login` opens a visible browser window; log in by hand and close it. If a platform shows a login wall, a
+`--login` opens a visible browser window; log in by hand and close it. (The login in Settings does the same
+and saves to the same place.) If a platform shows a login wall, a
 security check or a captcha during collection, Rasd stops and tells you. It never tries to get past one.
 
 ## Commands
@@ -82,10 +92,11 @@ security check or a captcha during collection, Rasd stops and tells you. It neve
 ## Layout
 
 ```
-src/core/         shared logic: database, schemas, recipes, the bridge core
+src/core/         shared logic: database, schemas, recipes, the bridge core, jobs, settings,
+                  sessions, business profiles
 src/cli/          the `rasd` CLI
-src/server/       local API + SSE event stream
-src/collectors/   browser session, pacing, Instagram and Ad Library collectors
+src/server/       local API (buildServer in app.ts) + SSE event stream + the job worker
+src/collectors/   browser session, pacing, session login/check jobs, Instagram and Ad Library collectors
 src/spikes/       Phase 0 spike scripts
 src/web/          the React app (Astryx components only)
 locales/          every UI string — ar is the source, en is scaffolded
@@ -102,6 +113,7 @@ no inline styles, tokens instead of raw colors. Two project rules on top, from [
 
 - Arrow and chevron icons go through `DirectionalIcon`.
 - URLs, handles, commands and IDs go through `Ltr`.
+- Text from platforms or from a Claude session goes through `isolateNumberRuns()` (keeps «2+1» in order).
 
 To change the theme: `npm run astryx -- experimental theme editor set rasd <thing> <value>`, then look at the
 result with `npm run astryx -- experimental theme editor show rasd --png`.
