@@ -73,7 +73,10 @@ export const DEFAULT_SETTINGS: Settings = {
 };
 
 export class SettingsError extends Error {
-  constructor(message: string) {
+  constructor(
+    message: string,
+    readonly issues: {path: (string | number)[]; message: string}[] = [],
+  ) {
     super(message);
     this.name = 'SettingsError';
   }
@@ -98,7 +101,10 @@ export function updateSettings<K extends SettingsSection>(key: K, patch: Partial
   if (!(key in SECTIONS)) throw new SettingsError(`قسم إعدادات غير معروف: ${String(key)}`);
   const merged = {...readSection(key), ...patch};
   const parsed = SECTIONS[key].safeParse(merged);
-  if (!parsed.success) throw new SettingsError(formatZodError(parsed.error));
+  if (!parsed.success) {
+    const issues = parsed.error.issues.map(i => ({path: i.path.map(p => (typeof p === 'symbol' ? String(p) : p)), message: i.message}));
+    throw new SettingsError(issues.length === 1 ? issues[0]!.message : formatZodError(parsed.error), issues);
+  }
   const now = new Date();
   getDb()
     .insert(settings)
